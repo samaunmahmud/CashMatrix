@@ -1,6 +1,6 @@
-# Expense Tracker — Backend
+# CashMatrix — Backend
 
-This is the backend for my expense tracker app, a full-stack portfolio project I built to learn real-world software development. It's a REST API built with Spring Boot that handles user authentication, connects to Plaid's banking API, and stores transaction data in PostgreSQL.
+This is the backend for CashMatrix, my expense tracker app, a full-stack portfolio project I built to learn real-world software development. It's a REST API built with Spring Boot that handles user authentication, connects to Plaid's banking API, and stores transaction data in PostgreSQL.
 
 ## What it does
 

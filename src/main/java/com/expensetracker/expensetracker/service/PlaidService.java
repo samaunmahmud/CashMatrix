@@ -20,7 +20,7 @@ public class PlaidService {
         Map<String, Object> body = Map.of(
                 "client_id", plaidConfig.getClientId(),
                 "secret", plaidConfig.getSecret(),
-                "client_name", "Expense Tracker",
+                "client_name", "CashMatrix",
                 "user", Map.of("client_user_id", userId),
                 "products", List.of("transactions"),
                 "country_codes", List.of("US"),
