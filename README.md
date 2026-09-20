@@ -1,6 +1,6 @@
-# Expense Tracker — Frontend
+# CashMatrix — Frontend
 
-This is the frontend for my expense tracker app. It's a React app that lets users sign up, connect a real bank account through Plaid, and see their transactions and spending breakdown on a dashboard.
+This is the frontend for CashMatrix, my expense tracker app. It's a React app that lets users sign up, connect a real bank account through Plaid, and see their transactions and spending breakdown on a dashboard.
 
 ## What it looks like
 

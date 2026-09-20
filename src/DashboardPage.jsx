@@ -70,7 +70,7 @@ export default function DashboardPage() {
   return (
     <div style={styles.container}>
       <header style={styles.header}>
-        <h1 style={styles.logo}>Expense Tracker</h1>
+        <h1 style={styles.logo}>CashMatrix</h1>
         <div style={styles.headerRight}>
           <span style={styles.userName}>{user?.fullName}</span>
           <button onClick={handleLogout} style={styles.logoutButton}>Log out</button>

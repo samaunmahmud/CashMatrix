@@ -38,7 +38,7 @@ export default function LoginPage() {
   return (
     <div style={styles.container}>
       <div style={styles.card}>
-        <h1 style={styles.title}>Expense Tracker</h1>
+        <h1 style={styles.title}>CashMatrix</h1>
         <p style={styles.subtitle}>
           {isSignup ? "Create an account" : "Log in to your account"}
         </p>
