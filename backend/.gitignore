@@ -1,0 +1,11 @@
+# Maven build output - never commit this
+target/
+
+# Application properties with real secrets - never commit
+src/main/resources/application.properties
+
+# VS Code settings
+.vscode/
+
+# Mac junk
+.DS_Store
