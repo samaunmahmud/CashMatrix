@@ -5,6 +5,7 @@ import LoginPage from "./LoginPage";
 import DashboardPage from "./DashboardPage";
 import CalendarPage from "./CalendarPage";
 import NotificationsPage from "./NotificationsPage";
+import SettingsPage from "./SettingsPage";
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -25,6 +26,7 @@ function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

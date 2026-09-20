@@ -23,12 +23,20 @@
   --violet: #5b3f9e;
   --violet-soft: #efe9fb;
 
+  /* Chart palette: brand greens first, then distinct hues for the remaining slices */
+  --chart-1: #006a4d;
+  --chart-2: #2fa37a;
+  --chart-3: #8fd3b6;
+  --chart-4: #5b3f9e;
+  --chart-5: #d18a1d;
+  --chart-6: #c7523f;
+
   --radius: 14px;
   --radius-sm: 10px;
   --shadow: 0 1px 2px rgba(2, 71, 49, 0.06), 0 6px 20px rgba(2, 71, 49, 0.07);
   --focus: 0 0 0 3px rgba(10, 133, 96, 0.35);
 
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: "Inter Variable", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   color: var(--text);
   background: var(--bg);
   color-scheme: light;
@@ -187,3 +195,72 @@ textarea.input { padding: 10px 14px; min-height: 84px; resize: vertical; }
   text-align: center;
   color: var(--muted);
 }
+
+/* Money lines up in columns when every digit is the same width. */
+.tx-amount, .hero-amount, .account-balance-amount, .coming-amount, .upcoming-amount,
+.agenda-amount, .donut-amount, .donut-total, .upcoming-total { font-variant-numeric: tabular-nums; }
+
+.h-tight { letter-spacing: -0.01em; }
+
+/* Keyboard users can jump past the navigation. */
+.skip-link {
+  position: absolute;
+  left: 12px;
+  top: -60px;
+  z-index: 100;
+  padding: 10px 16px;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--brand-strong);
+  font-weight: 700;
+}
+.skip-link:focus { top: 8px; box-shadow: var(--focus); }
+
+.avatar {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.skeleton {
+  background: linear-gradient(90deg, #e6ece8 25%, #f3f6f4 50%, #e6ece8 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+}
+
+/* On/off switch */
+.switch {
+  position: relative;
+  flex: none;
+  width: 52px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: #b9c7c0;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.switch-on { background: var(--brand); }
+.switch:disabled { opacity: 0.5; cursor: not-allowed; }
+.switch-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+  transition: transform 0.15s;
+}
+.switch-on .switch-knob { transform: translateX(22px); }

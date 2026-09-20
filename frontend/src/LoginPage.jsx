@@ -13,7 +13,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { user, login } = useAuth();
+  const { user, login, sessionExpired } = useAuth();
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   if (user) return <Navigate to="/dashboard" replace />;
@@ -54,6 +55,10 @@ export default function LoginPage() {
       <div className="card auth-card">
         <h2>{isSignup ? "Create your account" : "Log in"}</h2>
 
+        {sessionExpired && (
+          <p className="auth-notice" role="status">Your session has ended. Please log in again.</p>
+        )}
+
         <form onSubmit={handleSubmit} className="auth-form">
           {isSignup && (
             <label className="field">
@@ -81,14 +86,24 @@ export default function LoginPage() {
           </label>
           <label className="field">
             <span>Password</span>
-            <input
-              className="input"
-              type="password"
-              autoComplete={isSignup ? "new-password" : "current-password"}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
+            <div className="password-field">
+              <input
+                className="input"
+                type={showPassword ? "text" : "password"}
+                autoComplete={isSignup ? "new-password" : "current-password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-pressed={showPassword}
+              >
+                {showPassword ? "Hide" : "Show"}
+              </button>
+            </div>
             {isSignup && <span className="field-hint">At least 8 characters.</span>}
           </label>
 

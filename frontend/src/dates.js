@@ -37,5 +37,14 @@ export const monthTitle = (year, month) =>
 export const longDate = (iso) =>
   new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", year: "numeric" }).format(parseISO(iso));
 
+/** "14:05" for something updated today, otherwise "17 Sept, 14:05". */
+export const updatedLabel = (isoInstant) => {
+  const date = new Date(isoInstant);
+  const sameDay = toISO(date) === todayISO();
+  return new Intl.DateTimeFormat("en-GB", sameDay
+    ? { hour: "2-digit", minute: "2-digit" }
+    : { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }).format(date);
+};
+
 export const shortDate = (iso) =>
   new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(parseISO(iso));

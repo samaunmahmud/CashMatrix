@@ -1,185 +1,226 @@
 import { useState, useCallback, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Link } from "react-router-dom";
-import api, { calendarApi, plaidApi } from "./api";
+import { accountApi, calendarApi, plaidApi, subscriptionApi, transactionApi } from "./api";
 import { useAuth } from "./AuthContext";
-import { addDays, shortDate, todayISO } from "./dates";
+import { useNotifications } from "./NotificationsContext";
+import AccountCard from "./components/AccountCard";
+import EventDialog from "./components/EventDialog";
+import QuickActions from "./components/QuickActions";
+import SpendingDonut from "./components/SpendingDonut";
+import SubscriptionSuggestions from "./components/SubscriptionSuggestions";
+import TransactionList from "./components/TransactionList";
+import { addDays, shortDate, todayISO, updatedLabel } from "./dates";
 import { formatMoney } from "./format";
 import "./styles/dashboard.css";
 
+const greeting = () => {
+  const hour = new Date().getHours();
+  return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+};
+
 export default function DashboardPage() {
   const [linkToken, setLinkToken] = useState(null);
-  const [connected, setConnected] = useState(false);
+  const [accounts, setAccounts] = useState(null); // null while loading
   const [transactions, setTransactions] = useState([]);
-  const [upcoming, setUpcoming] = useState([]);
-  const [statusMessage, setStatusMessage] = useState("");
-  const [loadingToken, setLoadingToken] = useState(true);
   const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [upcoming, setUpcoming] = useState([]);
+  const [suggestions, setSuggestions] = useState([]);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [syncing, setSyncing] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
 
   const { user } = useAuth();
+  const { unread, refreshUnread } = useNotifications();
+  const reload = useCallback(() => setReloadKey((key) => key + 1), []);
 
-  const loadTransactions = useCallback(
-    () =>
-      api.get("/transactions").then((res) => {
-        if (res.data.length > 0) {
-          setConnected(true);
-          setTransactions(res.data);
-        }
-      }),
-    []
-  );
+  // One place that loads everything the page shows. Each piece fails on its own, so a
+  // problem with (say) suggestions never blanks the balances.
+  useEffect(() => {
+    let active = true;
+    const today = todayISO();
+
+    accountApi.list()
+      .then((res) => active && setAccounts(res.data))
+      .catch(() => active && setAccounts([]));
+    transactionApi.list()
+      .then((res) => active && setTransactions(res.data))
+      .catch(console.error)
+      .finally(() => active && setLoadingTransactions(false));
+    calendarApi.entries(today, addDays(today, 14))
+      .then((res) => active && setUpcoming(res.data.filter((entry) => !entry.completed)))
+      .catch(() => {});
+    subscriptionApi.suggestions()
+      .then((res) => active && setSuggestions(res.data))
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [reloadKey]);
 
   useEffect(() => {
-    plaidApi
-      .createLinkToken()
-      .then((res) => setLinkToken(res.data.link_token))
-      .catch(() => setStatusMessage("Couldn't start bank connection. Try refreshing."))
-      .finally(() => setLoadingToken(false));
+    let active = true;
+    plaidApi.createLinkToken()
+      .then((res) => active && setLinkToken(res.data.link_token))
+      .catch(() => active && setStatusMessage("Couldn't start bank connection. Try refreshing."));
+    return () => {
+      active = false;
+    };
+  }, []);
 
-    loadTransactions()
-      .catch(console.error)
-      .finally(() => setLoadingTransactions(false));
-
-    // The "Coming up" panel is a bonus; if it fails the rest of the page still works.
-    const today = todayISO();
-    calendarApi
-      .entries(today, addDays(today, 14))
-      .then((res) => setUpcoming(res.data.filter((entry) => !entry.completed)))
-      .catch(() => {});
-  }, [loadTransactions]);
-
-  const refresh = () => {
-    setLoadingTransactions(true);
-    loadTransactions()
-      .catch(console.error)
-      .finally(() => setLoadingTransactions(false));
+  const syncNow = async () => {
+    setSyncing(true);
+    setStatusMessage("");
+    try {
+      await transactionApi.sync();
+      reload();
+      refreshUnread();
+    } catch {
+      setStatusMessage("Couldn't sync just now. Please try again.");
+    } finally {
+      setSyncing(false);
+    }
   };
 
-  const onSuccess = useCallback(
+  const onPlaidSuccess = useCallback(
     (publicToken) => {
-      setStatusMessage("Connecting your account...");
-      plaidApi
-        .exchangeToken(publicToken)
+      setStatusMessage("Connecting your account…");
+      plaidApi.exchangeToken(publicToken)
         .then(() => {
-          setStatusMessage("Syncing transactions...");
-          return api.post("/transactions/sync");
+          setStatusMessage("Syncing transactions…");
+          return transactionApi.sync();
         })
         .then(() => {
-          setConnected(true);
-          loadTransactions();
           setStatusMessage("");
+          reload();
         })
         .catch(() => setStatusMessage("Something went wrong connecting your bank."));
     },
-    [loadTransactions]
+    [reload]
   );
 
-  const { open, ready } = usePlaidLink({ token: linkToken, onSuccess });
+  const { open, ready } = usePlaidLink({ token: linkToken, onSuccess: onPlaidSuccess });
+
+  const connected = (accounts?.length ?? 0) > 0 || transactions.length > 0;
+  const currency = accounts?.find((a) => a.currency)?.currency;
 
   // Plaid reports money leaving the account as a positive amount and money arriving as negative.
   const categoryTotals = transactions.reduce((acc, tx) => {
     if (tx.amount <= 0) return acc;
-    const cat = tx.userCategory || tx.plaidCategory || "Uncategorized";
-    acc[cat] = (acc[cat] || 0) + tx.amount;
+    const category = tx.userCategory || tx.plaidCategory || "Uncategorised";
+    acc[category] = (acc[category] || 0) + tx.amount;
     return acc;
   }, {});
   const categories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
   const totalSpent = categories.reduce((sum, [, amount]) => sum + amount, 0);
   const moneyIn = transactions.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
 
+  // A total across accounts only makes sense when they are all in one currency.
+  const cash = (accounts ?? []).filter((a) => a.type === "depository" && a.currentBalance != null);
+  const totalBalance =
+    cash.length > 0 && new Set(cash.map((a) => a.currency)).size === 1
+      ? cash.reduce((sum, a) => sum + a.currentBalance, 0)
+      : null;
+  const lastUpdated = (accounts ?? [])
+    .map((a) => a.balanceUpdatedAt)
+    .filter(Boolean)
+    .sort()
+    .pop();
+
   const firstName = user?.fullName?.split(" ")[0];
 
   return (
-    <div className="dashboard">
+    <div className="home">
       <section className="hero" aria-label="Summary">
-        <p className="hero-hello">Hello{firstName ? `, ${firstName}` : ""}</p>
-        {connected ? (
-          <div className="hero-figures">
-            <div>
-              <p className="hero-label">Spent in the last 90 days</p>
-              <p className="hero-amount">{formatMoney(totalSpent)}</p>
-            </div>
-            <div>
-              <p className="hero-label">Money in</p>
-              <p className="hero-amount hero-amount-in">+{formatMoney(moneyIn)}</p>
-            </div>
-          </div>
+        <p className="hero-hello">{greeting()}{firstName ? `, ${firstName}` : ""}</p>
+        {totalBalance != null ? (
+          <>
+            <p className="hero-label">Total in your accounts</p>
+            <p className="hero-amount">{formatMoney(totalBalance, currency)}</p>
+            {transactions.length > 0 && (
+              <p className="hero-stats">
+                <span>Spent <strong>{formatMoney(totalSpent, currency)}</strong></span>
+                <span>Money in <strong className="hero-in">{formatMoney(moneyIn, currency)}</strong></span>
+                <span className="hero-period">last 90 days</span>
+              </p>
+            )}
+          </>
+        ) : connected ? (
+          <p className="hero-label">Here's where your money went.</p>
         ) : (
-          <p className="hero-label">Connect a bank account to see where your money goes.</p>
+          <p className="hero-label">Link a bank to see your balances and spending.</p>
         )}
       </section>
 
-      <div className="dashboard-grid">
-        <div className="dashboard-main">
-          {!connected ? (
-            <section className="card connect-card">
-              <h2>Connect your bank account</h2>
-              <p className="muted">
-                Securely link a bank account to start tracking your spending automatically.
-              </p>
-              <button type="button" className="btn" onClick={() => open()} disabled={!ready || loadingToken}>
-                {loadingToken ? "Loading…" : "Connect a bank account"}
-              </button>
-              {statusMessage && <p className="muted status">{statusMessage}</p>}
-            </section>
-          ) : (
-            <>
-              <section className="card" aria-labelledby="categories-title">
-                <div className="card-header">
-                  <h2 id="categories-title">Spending by category</h2>
-                </div>
-                {categories.length === 0 ? (
-                  <p className="empty-state">No spending data yet.</p>
-                ) : (
-                  categories.map(([cat, amount]) => (
-                    <div key={cat} className="category-row">
-                      <div className="category-info">
-                        <span>{cat}</span>
-                        <strong>{formatMoney(amount)}</strong>
-                      </div>
-                      <div className="bar-track" role="presentation">
-                        <div className="bar-fill" style={{ width: `${(amount / totalSpent) * 100}%` }} />
-                      </div>
-                    </div>
-                  ))
-                )}
-              </section>
+      <section className="accounts" aria-label="Your accounts">
+        <div className="accounts-head">
+          <h2>Your accounts</h2>
+          {lastUpdated && <span className="muted">Updated {updatedLabel(lastUpdated)}</span>}
+        </div>
+        {accounts === null ? (
+          <div className="accounts-row" aria-busy="true">
+            <div className="account-card skeleton" />
+            <div className="account-card skeleton" />
+          </div>
+        ) : accounts.length > 0 ? (
+          <div className="accounts-row">
+            {[...accounts]
+              .sort((a, b) => (a.type === "credit") - (b.type === "credit"))
+              .map((account) => (
+                <AccountCard key={account.id} account={account} />
+              ))}
+          </div>
+        ) : (
+          <div className="card connect-card">
+            <h3>Connect your bank account</h3>
+            <p className="muted">
+              Securely link a bank account to see your balances and track your spending automatically.
+            </p>
+            <button type="button" className="btn" onClick={() => open()} disabled={!ready}>
+              {linkToken ? "Connect a bank account" : "Loading…"}
+            </button>
+          </div>
+        )}
+        {statusMessage && <p className="status" role="status">{statusMessage}</p>}
+      </section>
 
-              <section className="card" aria-labelledby="transactions-title">
-                <div className="card-header">
-                  <h2 id="transactions-title">Transactions</h2>
-                  <button type="button" className="btn btn-outline btn-sm" onClick={refresh}>
-                    Refresh
-                  </button>
-                </div>
-                {loadingTransactions ? (
-                  <p className="empty-state">Loading…</p>
-                ) : transactions.length === 0 ? (
-                  <p className="empty-state">No transactions yet.</p>
-                ) : (
-                  <ul className="tx-list">
-                    {transactions.map((tx) => (
-                      <li key={tx.id} className="tx-row">
-                        <div className="tx-left">
-                          <span className="tx-name">{tx.name}</span>
-                          <span className="tx-sub">
-                            {tx.userCategory || tx.plaidCategory || "Uncategorized"} · {tx.transactionDate}
-                          </span>
-                        </div>
-                        <span className={`tx-amount${tx.amount < 0 ? " tx-in" : ""}`}>
-                          {tx.amount < 0 ? "+" : ""}
-                          {formatMoney(Math.abs(tx.amount))}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            </>
+      <QuickActions
+        onAdd={() => setAddOpen(true)}
+        onLinkBank={() => open()}
+        linkDisabled={!ready}
+        unread={unread}
+      />
+
+      <div className="home-grid">
+        <div className="home-main">
+          {connected && (
+            <section className="card" aria-labelledby="categories-title">
+              <div className="card-header">
+                <h2 id="categories-title">Where your money went</h2>
+                <span className="muted">Last 90 days</span>
+              </div>
+              {categories.length === 0 ? (
+                <p className="empty-state">No spending data yet.</p>
+              ) : (
+                <SpendingDonut categories={categories} total={totalSpent} currency={currency} />
+              )}
+            </section>
+          )}
+
+          {connected && (
+            <TransactionList
+              transactions={transactions}
+              loading={loadingTransactions}
+              currency={currency}
+              onRefresh={syncNow}
+              refreshing={syncing}
+            />
           )}
         </div>
 
-        <aside className="dashboard-side">
+        <aside className="home-side">
           <section className="card" aria-labelledby="coming-up-title">
             <div className="card-header">
               <h2 id="coming-up-title">Coming up</h2>
@@ -188,7 +229,7 @@ export default function DashboardPage() {
             {upcoming.length === 0 ? (
               <p className="empty-state">
                 Nothing due in the next two weeks.{" "}
-                <Link to="/calendar">Add a payment</Link>
+                <button type="button" className="link-button" onClick={() => setAddOpen(true)}>Add a payment</button>
               </p>
             ) : (
               <ul className="coming-list">
@@ -197,15 +238,36 @@ export default function DashboardPage() {
                     <Link to={`/calendar?date=${entry.date}`} className="coming-item">
                       <span className="coming-date">{shortDate(entry.date)}</span>
                       <span className="coming-title">{entry.title}</span>
-                      {entry.amount != null && <span className="coming-amount">{formatMoney(entry.amount)}</span>}
+                      {entry.amount != null && <span className="coming-amount">{formatMoney(entry.amount, currency)}</span>}
                     </Link>
                   </li>
                 ))}
               </ul>
             )}
           </section>
+
+          <SubscriptionSuggestions
+            suggestions={suggestions}
+            currency={currency}
+            onChanged={async () => {
+              reload();
+              refreshUnread();
+            }}
+          />
         </aside>
       </div>
+
+      {addOpen && (
+        <EventDialog
+          defaultDate={todayISO()}
+          onClose={() => setAddOpen(false)}
+          onSaved={() => {
+            setAddOpen(false);
+            reload();
+            refreshUnread();
+          }}
+        />
+      )}
     </div>
   );
 }

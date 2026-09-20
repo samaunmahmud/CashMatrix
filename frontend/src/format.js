@@ -1,11 +1,16 @@
-// The API stores amounts without a currency, so the display currency is a setting.
-// Plaid's sandbox banks are US ones; set VITE_CURRENCY=GBP once UK banks are connected.
-const CURRENCY = import.meta.env.VITE_CURRENCY || "USD";
+// Amounts arrive without a currency of their own, so a display currency is set here (pounds by default).
+// Accounts that report their own currency, such as a US bank, pass it in.
+const DEFAULT_CURRENCY = import.meta.env.VITE_CURRENCY || "GBP";
 
-const formatter = new Intl.NumberFormat("en-GB", {
-  style: "currency",
-  currency: CURRENCY,
-  currencyDisplay: "narrowSymbol",
-});
+const formatters = new Map();
 
-export const formatMoney = (amount) => formatter.format(amount ?? 0);
+export function formatMoney(amount, currency = DEFAULT_CURRENCY) {
+  const code = currency || DEFAULT_CURRENCY;
+  if (!formatters.has(code)) {
+    formatters.set(
+      code,
+      new Intl.NumberFormat("en-GB", { style: "currency", currency: code, currencyDisplay: "narrowSymbol" })
+    );
+  }
+  return formatters.get(code).format(amount ?? 0);
+}

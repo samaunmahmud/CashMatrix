@@ -1,0 +1,25 @@
+.settings-page { max-width: 720px; margin: 0 auto; }
+.settings-card { margin-bottom: 20px; }
+.settings-card h2 { margin-bottom: 4px; font-size: 1.15rem; }
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 16px 0;
+  border-top: 1px solid var(--line);
+}
+.setting-row:first-of-type { margin-top: 10px; }
+.setting-text { min-width: 0; }
+.setting-text h3 { font-size: 1rem; }
+.setting-text p { margin-top: 2px; font-size: 0.875rem; }
+
+.settings-test { padding-top: 16px; border-top: 1px solid var(--line); }
+.settings-result { margin-top: 10px; font-size: 0.875rem; font-weight: 500; color: var(--brand-strong); }
+
+.account-details { margin: 12px 0 18px; }
+.account-details div { display: flex; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); }
+.account-details div:first-child { border-top: 0; }
+.account-details dt { width: 72px; flex: none; color: var(--muted); font-size: 0.875rem; }
+.account-details dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }

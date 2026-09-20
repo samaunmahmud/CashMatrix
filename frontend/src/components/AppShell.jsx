@@ -1,28 +1,24 @@
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
+import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { NotificationsProvider, useNotifications } from "../NotificationsContext";
 import TigerLogo from "./TigerLogo";
-import { BellIcon, CalendarIcon, HomeIcon } from "./Icons";
+import { BellIcon, CalendarIcon, HomeIcon, SettingsIcon } from "./Icons";
 import "../styles/shell.css";
 
 const NAV = [
   { to: "/dashboard", label: "Home", Icon: HomeIcon },
   { to: "/calendar", label: "Calendar", Icon: CalendarIcon },
   { to: "/notifications", label: "Alerts", Icon: BellIcon, badge: true },
+  { to: "/settings", label: "Settings", Icon: SettingsIcon },
 ];
 
 function Shell() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const { unread } = useNotifications();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
 
   return (
     <div className="shell">
+      <a className="skip-link" href="#main">Skip to content</a>
       <header className="shell-header">
         <div className="shell-header-inner">
           <NavLink to="/dashboard" className="brand" aria-label="CashMatrix home">
@@ -48,15 +44,13 @@ function Shell() {
           </nav>
 
           <div className="shell-user">
+            <span className="shell-avatar" aria-hidden="true">{user?.fullName?.[0]?.toUpperCase() ?? "?"}</span>
             <span className="shell-user-name">{user?.fullName}</span>
-            <button type="button" className="shell-logout" onClick={handleLogout}>
-              Log out
-            </button>
           </div>
         </div>
       </header>
 
-      <main className="shell-main">
+      <main id="main" className="shell-main">
         <Outlet />
       </main>
     </div>
