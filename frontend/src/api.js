@@ -26,4 +26,20 @@ export const plaidApi = {
     api.post("/plaid/exchange-token", { public_token: publicToken }),
 };
 
+export const calendarApi = {
+  entries: (from, to) => api.get("/calendar", { params: { from, to } }),
+  events: () => api.get("/calendar/events"),
+  create: (data) => api.post("/calendar/events", data),
+  update: (id, data) => api.put(`/calendar/events/${id}`, data),
+  complete: (id) => api.post(`/calendar/events/${id}/complete`),
+  remove: (id) => api.delete(`/calendar/events/${id}`),
+};
+
+export const notificationApi = {
+  list: () => api.get("/notifications"),
+  unreadCount: () => api.get("/notifications/unread-count"),
+  markRead: (id) => api.post(`/notifications/${id}/read`),
+  markAllRead: () => api.post("/notifications/read-all"),
+};
+
 export default api;

@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { authApi } from "./api";
 import { useAuth } from "./AuthContext";
+import TigerLogo from "./components/TigerLogo";
+import "./styles/auth.css";
 
 export default function LoginPage() {
   const [isSignup, setIsSignup] = useState(false);
@@ -11,8 +13,10 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { user, login } = useAuth();
   const navigate = useNavigate();
+
+  if (user) return <Navigate to="/dashboard" replace />;
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -27,8 +31,12 @@ export default function LoginPage() {
       login(response.data);
       navigate("/dashboard");
     } catch (err) {
+      const data = err.response?.data;
+      // Validation failures come back as { field: message }, other failures as { error: message }.
       const message =
-        err.response?.data?.error || "Something went wrong. Please try again.";
+        data?.error ||
+        (data && typeof data === "object" ? Object.values(data).join(" ") : "") ||
+        "Something went wrong. Please try again.";
       setError(message);
     } finally {
       setLoading(false);
@@ -36,56 +44,70 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={styles.container}>
-      <div style={styles.card}>
-        <h1 style={styles.title}>CashMatrix</h1>
-        <p style={styles.subtitle}>
-          {isSignup ? "Create an account" : "Log in to your account"}
-        </p>
+    <div className="auth">
+      <div className="auth-brand">
+        <TigerLogo size={84} badge title="CashMatrix tiger logo" />
+        <h1>CashMatrix</h1>
+        <p>All your money, bills and dates in one place.</p>
+      </div>
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+      <div className="card auth-card">
+        <h2>{isSignup ? "Create your account" : "Log in"}</h2>
+
+        <form onSubmit={handleSubmit} className="auth-form">
           {isSignup && (
-            <input
-              type="text"
-              placeholder="Full name"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              style={styles.input}
-            />
+            <label className="field">
+              <span>Full name</span>
+              <input
+                className="input"
+                type="text"
+                autoComplete="name"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+              />
+            </label>
           )}
-          <input
-            type="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            style={styles.input}
-          />
-          <input
-            type="password"
-            placeholder="Password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            style={styles.input}
-          />
+          <label className="field">
+            <span>Email</span>
+            <input
+              className="input"
+              type="email"
+              autoComplete="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </label>
+          <label className="field">
+            <span>Password</span>
+            <input
+              className="input"
+              type="password"
+              autoComplete={isSignup ? "new-password" : "current-password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+            {isSignup && <span className="field-hint">At least 8 characters.</span>}
+          </label>
 
-          {error && <p style={styles.error}>{error}</p>}
+          {error && <p className="error-text" role="alert">{error}</p>}
 
-          <button type="submit" disabled={loading} style={styles.button}>
-            {loading ? "Please wait..." : isSignup ? "Sign up" : "Log in"}
+          <button type="submit" disabled={loading} className="btn">
+            {loading ? "Please wait…" : isSignup ? "Sign up" : "Log in"}
           </button>
         </form>
 
-        <p style={styles.toggle}>
-          {isSignup ? "Already have an account?" : "Don't have an account?"}{" "}
+        <p className="auth-toggle">
+          {isSignup ? "Already have an account?" : "New to CashMatrix?"}{" "}
           <button
+            type="button"
+            className="link-button"
             onClick={() => {
               setIsSignup(!isSignup);
               setError("");
             }}
-            style={styles.toggleButton}
           >
             {isSignup ? "Log in" : "Sign up"}
           </button>
@@ -94,75 +116,3 @@ export default function LoginPage() {
     </div>
   );
 }
-
-const styles = {
-  container: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "100vh",
-    backgroundColor: "#f5f5f7",
-    fontFamily: "system-ui, sans-serif",
-  },
-  card: {
-    backgroundColor: "white",
-    padding: "2.5rem",
-    borderRadius: "12px",
-    boxShadow: "0 4px 20px rgba(0,0,0,0.08)",
-    width: "100%",
-    maxWidth: "380px",
-  },
-  title: {
-    fontSize: "1.5rem",
-    fontWeight: 700,
-    marginBottom: "0.25rem",
-    textAlign: "center",
-  },
-  subtitle: {
-    color: "#666",
-    textAlign: "center",
-    marginBottom: "1.5rem",
-    fontSize: "0.9rem",
-  },
-  form: {
-    display: "flex",
-    flexDirection: "column",
-    gap: "0.75rem",
-  },
-  input: {
-    padding: "0.75rem",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
-    fontSize: "1rem",
-  },
-  button: {
-    padding: "0.75rem",
-    borderRadius: "8px",
-    border: "none",
-    backgroundColor: "#2563eb",
-    color: "white",
-    fontWeight: 600,
-    fontSize: "1rem",
-    cursor: "pointer",
-    marginTop: "0.5rem",
-  },
-  error: {
-    color: "#dc2626",
-    fontSize: "0.85rem",
-    margin: 0,
-  },
-  toggle: {
-    textAlign: "center",
-    marginTop: "1.5rem",
-    fontSize: "0.9rem",
-    color: "#666",
-  },
-  toggleButton: {
-    background: "none",
-    border: "none",
-    color: "#2563eb",
-    fontWeight: 600,
-    cursor: "pointer",
-    fontSize: "0.9rem",
-  },
-};

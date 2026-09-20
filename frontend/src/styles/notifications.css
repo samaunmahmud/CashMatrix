@@ -1,0 +1,26 @@
+.notice-list { margin: 0; padding: 0; list-style: none; }
+.notice-list li + li { border-top: 1px solid var(--line); }
+
+.notice {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  align-items: start;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.notice:hover { background: var(--brand-soft); }
+
+.notice-dot { width: 10px; height: 10px; margin-top: 7px; border-radius: 50%; background: transparent; }
+.notice-unread .notice-dot { background: var(--brand-mid); }
+
+.notice-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.notice-title { font-weight: 500; }
+.notice-unread .notice-title { font-weight: 800; }
+.notice-message { font-size: 0.875rem; color: var(--muted); }
+.notice-date { font-size: 0.8125rem; font-weight: 700; color: var(--brand-strong); white-space: nowrap; }

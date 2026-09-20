@@ -1,0 +1,110 @@
+.shell { min-height: 100vh; }
+
+.shell-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--brand);
+  color: #fff;
+}
+
+.shell-header-inner {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  max-width: 1040px;
+  margin: 0 auto;
+  padding: 10px 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 8px;
+}
+.brand-name { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
+
+.shell-nav { display: flex; gap: 4px; margin-left: 8px; }
+
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.86);
+  font-weight: 600;
+  text-decoration: none;
+}
+.nav-link:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.nav-link.active { background: #fff; color: var(--brand-strong); }
+
+.nav-icon { position: relative; display: inline-flex; }
+.nav-badge {
+  position: absolute;
+  top: -7px;
+  right: -9px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: 999px;
+  background: #ffd23f;
+  color: #3a2c00;
+  font-size: 0.6875rem;
+  font-weight: 800;
+  line-height: 18px;
+  text-align: center;
+}
+
+.shell-user { display: flex; align-items: center; gap: 14px; margin-left: auto; }
+.shell-user-name { font-size: 0.9rem; opacity: 0.92; }
+.shell-logout {
+  min-height: 36px;
+  padding: 0 16px;
+  border: 1.5px solid rgba(255, 255, 255, 0.7);
+  border-radius: 999px;
+  background: transparent;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+.shell-logout:hover { background: rgba(255, 255, 255, 0.15); }
+.shell-header :focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6); }
+
+.shell-main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; }
+
+/* Phones: navigation moves to a bottom bar, like a banking app. */
+@media (max-width: 720px) {
+  .shell-user-name { display: none; }
+
+  .shell-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 30;
+    justify-content: space-around;
+    gap: 0;
+    margin: 0;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: #fff;
+    border-top: 1px solid var(--line);
+    box-shadow: 0 -4px 18px rgba(2, 71, 49, 0.08);
+  }
+  .nav-link {
+    flex: 1;
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 4px;
+    border-radius: 12px;
+    color: var(--muted);
+    font-size: 0.75rem;
+  }
+  .nav-link:hover { background: var(--brand-soft); color: var(--brand-strong); }
+  .nav-link.active { background: var(--brand-soft); color: var(--brand-strong); }
+
+  .shell-main { padding-bottom: 96px; }
+}
