@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -20,6 +21,12 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Optional<Notification> findByIdAndUser(Long id, User user);
 
     boolean existsByEventAndDueDate(CalendarEvent event, LocalDate dueDate);
+
+    // Recent reminders that haven't gone out on every channel yet. The user and event are fetched
+    // up front because delivery runs in the background, with no web request to lazy-load them.
+    @Query("select n from Notification n join fetch n.user join fetch n.event "
+            + "where n.createdAt > :since and (n.emailSent = false or n.pushSent = false)")
+    List<Notification> findUndelivered(Instant since);
 
     @Modifying
     @Query("update Notification n set n.read = true where n.user = :user and n.read = false")

@@ -47,6 +47,11 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | GET | `/api/notifications/unread-count` | Yes | Number of unread notifications, for a badge |
 | POST | `/api/notifications/{id}/read` | Yes | Mark one notification read |
 | POST | `/api/notifications/read-all` | Yes | Mark all notifications read |
+| GET | `/api/settings/notifications` | Yes | Reminder settings and which channels are available |
+| PUT | `/api/settings/notifications` | Yes | Turn email reminders on or off (`{"emailEnabled": true}`) |
+| POST | `/api/settings/notifications/test` | Yes | Send a test reminder through the channels that are on |
+| POST | `/api/push/subscribe` | Yes | Register a browser for push (the body of `PushSubscription.toJSON()`) |
+| POST | `/api/push/unsubscribe` | Yes | Remove a browser (`{"endpoint": "..."}`) |
 
 ## Banks and sessions
 
@@ -73,9 +78,47 @@ A calendar item has a `type` (`TASK`, `PAYMENT`, `SUBSCRIPTION`), an optional `a
 
 Reminder settings (all optional): `app.reminders.enabled` (default `true`), `app.reminders.cron` (default top of every hour), `app.reminders.zone` (default `Europe/London`, used to decide what "today" is).
 
+## Email and phone push reminders
+
+In-app alerts work out of the box. Email and push are optional and off until you configure them (each can be set as an environment variable, shown in brackets). Users then opt in from Settings.
+
+**Email** needs an SMTP server. Nothing is sent, and the Settings toggle is hidden, until `spring.mail.host` is set.
+
+```
+spring.mail.host=smtp.gmail.com        [SPRING_MAIL_HOST]
+spring.mail.port=587                   [SPRING_MAIL_PORT]
+spring.mail.username=you@gmail.com     [SPRING_MAIL_USERNAME]
+spring.mail.password=an-app-password   [SPRING_MAIL_PASSWORD]
+spring.mail.properties.mail.smtp.auth=true
+spring.mail.properties.mail.smtp.starttls.enable=true
+app.mail.from=CashMatrix <you@gmail.com>   [APP_MAIL_FROM]
+app.public-url=https://your-frontend.example  [APP_PUBLIC_URL]   # used for the link in the email
+```
+
+**Push** (notifications on a phone or desktop through the browser) needs a VAPID key pair. Generate one once:
+
+```bash
+npx web-push generate-vapid-keys
+```
+
+```
+app.push.public-key=...                [APP_PUSH_PUBLIC_KEY]
+app.push.private-key=...               [APP_PUSH_PRIVATE_KEY]   # keep secret
+app.push.subject=mailto:you@example.com [APP_PUSH_SUBJECT]
+```
+
+Push needs HTTPS in production (localhost is fine while developing). On iPhone it also needs the site added to the Home Screen.
+
+How delivery behaves:
+- Each reminder goes out once per channel. If a channel fails, the next hourly run retries; a channel that succeeded is never repeated.
+- Only reminders from the last 24 hours are sent, so switching a channel on never floods you with old ones.
+- Reminders created while you have the app open are shown in-app only, not also emailed or pushed.
+- Only real browser push services (Google, Mozilla, Apple, Microsoft) are accepted as push addresses, because the server posts to whatever address a subscription names.
+- A device that has unsubscribed or expired is forgotten automatically.
+
 ## Database schema
 
-Five tables: `users`, `bank_accounts`, `transactions`, `calendar_events` and `notifications`. Bank accounts store the Plaid access token needed to fetch transactions. Transactions store merchant name, amount, date, and category from Plaid. Calendar events hold tasks, payments and subscriptions; notifications hold the reminders generated for them (unique per event and due date).
+Nine tables: `users`, `bank_accounts`, `transactions`, `calendar_events`, `notifications`, `notification_preferences`, `push_subscriptions`, `dismissed_suggestions`. Bank accounts store the Plaid access token needed to fetch transactions. Transactions store merchant name, amount, date, and category from Plaid. Calendar events hold tasks, payments and subscriptions; notifications hold the reminders generated for them (unique per event and due date).
 
 ## Running the tests
 

@@ -50,6 +50,14 @@ public class Notification {
     @Column(name = "is_read", nullable = false)
     private boolean read = false;
 
+    // Whether the reminder has already gone out by email / phone push, so a retry never repeats it.
+    // The column definitions carry a default so the columns can be added to a table that already has rows.
+    @Column(name = "email_sent", nullable = false, columnDefinition = "boolean default false")
+    private boolean emailSent = false;
+
+    @Column(name = "push_sent", nullable = false, columnDefinition = "boolean default false")
+    private boolean pushSent = false;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 }

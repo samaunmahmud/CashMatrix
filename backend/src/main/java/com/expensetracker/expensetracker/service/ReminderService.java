@@ -40,7 +40,7 @@ public class ReminderService {
     public int generateReminders() {
         LocalDate today = LocalDate.now(clock);
         return createDueReminders(eventRepository.findByNextDueDateBetween(
-                today.minusDays(OVERDUE_GRACE_DAYS), today.plusDays(MAX_REMIND_DAYS)), today);
+                today.minusDays(OVERDUE_GRACE_DAYS), today.plusDays(MAX_REMIND_DAYS)), today, false);
     }
 
     /** Reminders for one user. Called when they open their notifications. */
@@ -48,7 +48,7 @@ public class ReminderService {
     public int generateReminders(User user) {
         LocalDate today = LocalDate.now(clock);
         return createDueReminders(eventRepository.findByUserAndNextDueDateBetween(
-                user, today.minusDays(OVERDUE_GRACE_DAYS), today.plusDays(MAX_REMIND_DAYS)), today);
+                user, today.minusDays(OVERDUE_GRACE_DAYS), today.plusDays(MAX_REMIND_DAYS)), today, true);
     }
 
     /**
@@ -68,7 +68,7 @@ public class ReminderService {
         return rolled;
     }
 
-    private int createDueReminders(List<CalendarEvent> candidates, LocalDate today) {
+    private int createDueReminders(List<CalendarEvent> candidates, LocalDate today, boolean userIsPresent) {
         int created = 0;
         for (CalendarEvent event : candidates) {
             if (!event.isActive()) {
@@ -81,7 +81,13 @@ public class ReminderService {
             if (notificationRepository.existsByEventAndDueDate(event, due)) {
                 continue; // already reminded for this occurrence
             }
-            notificationRepository.save(buildNotification(event, due, today));
+            Notification notification = buildNotification(event, due, today);
+            if (userIsPresent) {
+                // They are in the app right now and will see it there.
+                notification.setEmailSent(true);
+                notification.setPushSent(true);
+            }
+            notificationRepository.save(notification);
             created++;
         }
         return created;

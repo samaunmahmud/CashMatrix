@@ -1,6 +1,7 @@
 package com.expensetracker.expensetracker.scheduler;
 
 import com.expensetracker.expensetracker.service.ReminderService;
+import com.expensetracker.expensetracker.service.delivery.ReminderDeliveryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
 public class ReminderScheduler {
 
     private final ReminderService reminderService;
+    private final ReminderDeliveryService deliveryService;
 
     @Scheduled(cron = "${app.reminders.cron:0 0 * * * *}", zone = "${app.reminders.zone:Europe/London}")
     public void scheduledRun() {
@@ -41,7 +43,9 @@ public class ReminderScheduler {
         try {
             int rolled = reminderService.rollSubscriptionsForward();
             int created = reminderService.generateReminders();
-            log.info("Reminder job finished: {} subscription(s) rolled forward, {} reminder(s) created", rolled, created);
+            int delivered = deliveryService.deliverPending();
+            log.info("Reminder job finished: {} subscription(s) rolled forward, {} reminder(s) created, {} sent by email or push",
+                    rolled, created, delivered);
         } catch (RuntimeException ex) {
             // Never let a failed run kill the scheduler thread; the next run tries again.
             log.error("Reminder job failed", ex);
