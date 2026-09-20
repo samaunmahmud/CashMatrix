@@ -41,7 +41,8 @@ public class SubscriptionDetectionService {
     static final BigDecimal MAX_AMOUNT_SPREAD = new BigDecimal("1.15");
 
     private static final Pattern KEY_FORMAT = Pattern.compile("[a-z]{3,40}");
-    private static final Pattern DOMAIN_SUFFIX = Pattern.compile("\\.(com|co\\.uk|uk|net|org|io)\\b");
+    private static final Pattern DOMAIN_SUFFIX = Pattern.compile("\\.(com|co\\.uk|uk|net|org|io)\\b", Pattern.CASE_INSENSITIVE);
+    private static final Set<String> COMPANY_SUFFIXES = Set.of("ltd", "limited", "plc", "inc", "llc");
     private static final Set<String> NOISE = Set.of(
             "the", "card", "payment", "purchase", "pos", "dd", "direct", "debit", "www", "http", "https",
             "com", "uk", "ltd", "limited", "plc", "inc", "llc", "gbp", "visa", "recurring", "subscription",
@@ -187,14 +188,19 @@ public class SubscriptionDetectionService {
                 .orElse(null);
     }
 
-    /** A readable name from the most recent charge: reference numbers and domain suffixes dropped, title-cased. */
+    /**
+     * A readable name from the most recent charge: domain suffixes, company suffixes and reference numbers
+     * dropped. Shouting names ("DISNEY PLUS") become title case, but names that already have their own
+     * capitalisation ("PureGym", "Spotify AB") are left as the merchant wrote them.
+     */
     static String displayName(List<Transaction> chronological) {
         String raw = chronological.get(chronological.size() - 1).getName();
-        String cleaned = DOMAIN_SUFFIX.matcher(raw.toLowerCase(Locale.ROOT)).replaceAll("");
         List<String> words = new ArrayList<>();
-        for (String word : cleaned.trim().split("\\s+")) {
+        for (String word : DOMAIN_SUFFIX.matcher(raw).replaceAll("").trim().split("\\s+")) {
             if (word.matches(".*\\d.*")) break; // everything from the first reference number on is noise
-            if (!word.isBlank()) words.add(Character.toUpperCase(word.charAt(0)) + word.substring(1));
+            if (word.isBlank() || COMPANY_SUFFIXES.contains(word.toLowerCase(Locale.ROOT).replaceAll("[^a-z]", ""))) continue;
+            boolean shouting = word.equals(word.toUpperCase(Locale.ROOT)) && word.length() > 3;
+            words.add(shouting ? Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase(Locale.ROOT) : word);
         }
         String name = String.join(" ", words).trim();
         return name.isEmpty() ? raw.trim() : name;

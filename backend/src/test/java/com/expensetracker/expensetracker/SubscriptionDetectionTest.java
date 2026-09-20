@@ -93,10 +93,12 @@ class SubscriptionDetectionTest {
         assertThat(netflix.confidence()).isEqualTo("HIGH");
 
         SubscriptionSuggestion spotify = find("spotify");
+        assertThat(spotify.name()).as("keeps the merchant's own capitals").isEqualTo("Spotify AB");
         assertThat(spotify.confidence()).as("only two charges to go on").isEqualTo("MEDIUM");
         assertThat(spotify.nextExpected()).isEqualTo(LocalDate.of(2026, 10, 15));
 
         SubscriptionSuggestion gym = find("puregym");
+        assertThat(gym.name()).as("drops 'Ltd', keeps CamelCase").isEqualTo("PureGym");
         assertThat(gym.recurrence()).isEqualTo(Recurrence.WEEKLY);
         assertThat(gym.nextExpected()).as("13 Sep + 7 days = today").isEqualTo(LocalDate.of(2026, 9, 20));
     }

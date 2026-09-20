@@ -155,6 +155,18 @@ class AccountsAndSyncTest {
         assertThat(config.getCountryCodes()).containsExactly("GB", "US");
     }
 
+    @Test
+    void plaidBaseUrlFollowsTheEnvironmentUnlessOverridden() {
+        PlaidConfig config = new PlaidConfig();
+        ReflectionTestUtils.setField(config, "env", "sandbox");
+        assertThat(config.getBaseUrl()).isEqualTo("https://sandbox.plaid.com");
+        ReflectionTestUtils.setField(config, "env", "production");
+        assertThat(config.getBaseUrl()).isEqualTo("https://production.plaid.com");
+
+        ReflectionTestUtils.setField(config, "baseUrlOverride", " http://127.0.0.1:8099 ");
+        assertThat(config.getBaseUrl()).isEqualTo("http://127.0.0.1:8099");
+    }
+
     // --- helpers -------------------------------------------------------------
 
     private User saveUser() {

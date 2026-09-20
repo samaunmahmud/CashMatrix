@@ -24,6 +24,10 @@ public class PlaidConfig {
     @Value("${plaid.country-codes:GB}")
     private String countryCodes;
 
+    // Optional: send Plaid calls somewhere else, e.g. a local stand-in server while developing.
+    @Value("${plaid.base-url:}")
+    private String baseUrlOverride;
+
     public List<String> getCountryCodes() {
         return Arrays.stream(countryCodes.split(","))
                 .map(String::trim)
@@ -41,6 +45,9 @@ public class PlaidConfig {
     }
 
     public String getBaseUrl() {
+        if (baseUrlOverride != null && !baseUrlOverride.isBlank()) {
+            return baseUrlOverride.trim();
+        }
         return switch (env) {
             case "production" -> "https://production.plaid.com";
             case "development" -> "https://development.plaid.com";

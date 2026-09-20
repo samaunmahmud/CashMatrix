@@ -56,6 +56,7 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 ## Banks and sessions
 
 - Banks in the UK are linked by default. Set `plaid.country-codes` (env `PLAID_COUNTRY_CODES`) to `GB`, `US` or `GB,US`. Plaid must have the country enabled for your account.
+- `plaid.base-url` (env `PLAID_BASE_URL`) sends Plaid calls somewhere else, such as a local stand-in server while developing.
 - Each sync pages through everything Plaid holds for the last 90 days (not just the first 100) and refreshes account balances.
 - A missing, expired or invalid login token gets a `401` with `{"error":"Please log in again"}`. A stale token is ignored on the login and signup calls, so it can never lock someone out.
 
