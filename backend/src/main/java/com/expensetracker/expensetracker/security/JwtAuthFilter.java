@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.security;
 
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,6 +11,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -51,11 +53,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         }
 
         final String jwt = authHeader.substring(7); // strip "Bearer "
-        final String userEmail = jwtService.extractUsername(jwt);
+        final String userEmail;
+        try {
+            userEmail = jwtService.extractUsername(jwt);
+        } catch (JwtException | IllegalArgumentException ex) {
+            // Expired, tampered with or malformed. Treat it as "not logged in" rather than
+            // failing the request, so a stale token left in the browser can't stop someone
+            // from logging in again. Protected endpoints then answer 401.
+            filterChain.doFilter(request, response);
+            return;
+        }
 
         // Only authenticate if we found an email AND there's no existing auth yet
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userDetailsService.loadUserByUsername(userEmail);
+            UserDetails userDetails;
+            try {
+                userDetails = userDetailsService.loadUserByUsername(userEmail);
+            } catch (UsernameNotFoundException ex) {
+                filterChain.doFilter(request, response); // token for an account that no longer exists
+                return;
+            }
 
             if (jwtService.isTokenValid(jwt, userDetails)) {
                 UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(

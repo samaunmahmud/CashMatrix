@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 
 /**
@@ -46,6 +47,23 @@ public class BankAccount {
 
     private String type; // depository, credit, etc.
     private String subtype; // checking, savings, etc.
+
+    // Last four digits of the account number, as Plaid reports them.
+    @Column(length = 8)
+    private String mask;
+
+    // Balances as of the last time Plaid was asked. Null until the first fetch.
+    @Column(name = "current_balance", precision = 14, scale = 2)
+    private BigDecimal currentBalance;
+
+    @Column(name = "available_balance", precision = 14, scale = 2)
+    private BigDecimal availableBalance;
+
+    @Column(name = "iso_currency_code", length = 8)
+    private String currency;
+
+    @Column(name = "balance_updated_at")
+    private Instant balanceUpdatedAt;
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();

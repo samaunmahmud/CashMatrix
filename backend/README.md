@@ -33,6 +33,7 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | POST | `/api/plaid/exchange-token` | Yes | Complete bank connection |
 | POST | `/api/transactions/sync` | Yes | Pull latest transactions from Plaid |
 | GET | `/api/transactions` | Yes | Get all stored transactions |
+| GET | `/api/accounts` | Yes | Linked accounts with balances (never the Plaid token) |
 | GET | `/api/calendar?from=&to=` | Yes | Every occurrence between two dates (`yyyy-MM-dd`, max 400 days), for drawing the calendar |
 | GET | `/api/calendar/events` | Yes | All calendar items, one row each |
 | POST | `/api/calendar/events` | Yes | Create a task, payment or subscription |
@@ -43,6 +44,12 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | GET | `/api/notifications/unread-count` | Yes | Number of unread notifications, for a badge |
 | POST | `/api/notifications/{id}/read` | Yes | Mark one notification read |
 | POST | `/api/notifications/read-all` | Yes | Mark all notifications read |
+
+## Banks and sessions
+
+- Banks in the UK are linked by default. Set `plaid.country-codes` (env `PLAID_COUNTRY_CODES`) to `GB`, `US` or `GB,US`. Plaid must have the country enabled for your account.
+- Each sync pages through everything Plaid holds for the last 90 days (not just the first 100) and refreshes account balances.
+- A missing, expired or invalid login token gets a `401` with `{"error":"Please log in again"}`. A stale token is ignored on the login and signup calls, so it can never lock someone out.
 
 ## Calendar and reminders
 

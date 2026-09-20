@@ -13,6 +13,8 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class PlaidService {
 
+    public static final int PAGE_SIZE = 500;
+
     private final WebClient plaidWebClient;
     private final PlaidConfig plaidConfig;
 
@@ -23,7 +25,7 @@ public class PlaidService {
                 "client_name", "CashMatrix",
                 "user", Map.of("client_user_id", userId),
                 "products", List.of("transactions"),
-                "country_codes", List.of("US"),
+                "country_codes", plaidConfig.getCountryCodes(),
                 "language", "en"
         );
         return callPlaid("/link/token/create", body);
@@ -47,14 +49,15 @@ public class PlaidService {
         return callPlaid("/accounts/get", body);
     }
 
-    public Map getTransactions(String accessToken, String startDate, String endDate) {
+    /** One page of transactions (Plaid returns at most 500 per call); pass the running offset for the next page. */
+    public Map getTransactions(String accessToken, String startDate, String endDate, int offset) {
         Map<String, Object> body = Map.of(
                 "client_id", plaidConfig.getClientId(),
                 "secret", plaidConfig.getSecret(),
                 "access_token", accessToken,
                 "start_date", startDate,
                 "end_date", endDate,
-                "options", Map.of("count", 100, "offset", 0)
+                "options", Map.of("count", PAGE_SIZE, "offset", offset)
         );
         return callPlaid("/transactions/get", body);
     }
