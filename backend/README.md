@@ -34,6 +34,9 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | POST | `/api/transactions/sync` | Yes | Pull latest transactions from Plaid |
 | GET | `/api/transactions` | Yes | Get all stored transactions |
 | GET | `/api/accounts` | Yes | Linked accounts with balances (never the Plaid token) |
+| GET | `/api/subscriptions/suggestions` | Yes | Subscriptions found in your transactions that aren't on your calendar yet |
+| POST | `/api/subscriptions/suggestions/{key}/accept` | Yes | Add a suggestion to the calendar as a repeating subscription |
+| POST | `/api/subscriptions/suggestions/{key}/dismiss` | Yes | Stop suggesting it |
 | GET | `/api/calendar?from=&to=` | Yes | Every occurrence between two dates (`yyyy-MM-dd`, max 400 days), for drawing the calendar |
 | GET | `/api/calendar/events` | Yes | All calendar items, one row each |
 | POST | `/api/calendar/events` | Yes | Create a task, payment or subscription |
@@ -50,6 +53,10 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 - Banks in the UK are linked by default. Set `plaid.country-codes` (env `PLAID_COUNTRY_CODES`) to `GB`, `US` or `GB,US`. Plaid must have the country enabled for your account.
 - Each sync pages through everything Plaid holds for the last 90 days (not just the first 100) and refreshes account balances.
 - A missing, expired or invalid login token gets a `401` with `{"error":"Please log in again"}`. A stale token is ignored on the login and signup calls, so it can never lock someone out.
+
+## Subscription detection
+
+The app looks through synced transactions for a merchant that charges a steady amount (within 15%) on a steady weekly or monthly rhythm, and suggests it as a subscription. Weekly needs three charges, monthly needs two. Charges that stopped more than a week past their expected date are treated as cancelled. Only the last 90 days are synced, so yearly subscriptions can't be spotted this way. Merchants are grouped by the first meaningful word of their name, so two different merchants sharing a first word can occasionally be confused.
 
 ## Calendar and reminders
 
