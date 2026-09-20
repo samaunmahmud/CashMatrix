@@ -33,10 +33,43 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | POST | `/api/plaid/exchange-token` | Yes | Complete bank connection |
 | POST | `/api/transactions/sync` | Yes | Pull latest transactions from Plaid |
 | GET | `/api/transactions` | Yes | Get all stored transactions |
+| GET | `/api/calendar?from=&to=` | Yes | Every occurrence between two dates (`yyyy-MM-dd`, max 400 days), for drawing the calendar |
+| GET | `/api/calendar/events` | Yes | All calendar items, one row each |
+| POST | `/api/calendar/events` | Yes | Create a task, payment or subscription |
+| PUT | `/api/calendar/events/{id}` | Yes | Edit an item |
+| POST | `/api/calendar/events/{id}/complete` | Yes | Mark the current occurrence done or paid |
+| DELETE | `/api/calendar/events/{id}` | Yes | Delete an item and its notifications |
+| GET | `/api/notifications` | Yes | Latest 50 notifications (also refreshes the caller's reminders) |
+| GET | `/api/notifications/unread-count` | Yes | Number of unread notifications, for a badge |
+| POST | `/api/notifications/{id}/read` | Yes | Mark one notification read |
+| POST | `/api/notifications/read-all` | Yes | Mark all notifications read |
+
+## Calendar and reminders
+
+A calendar item has a `type` (`TASK`, `PAYMENT`, `SUBSCRIPTION`), an optional `amount`, a `startDate`, a `recurrence` (`NONE`, `WEEKLY`, `MONTHLY`, `YEARLY`) and `remindDaysBefore` (0 to 30, default 1). Example body for `POST /api/calendar/events`:
+
+```json
+{ "title": "Netflix", "type": "SUBSCRIPTION", "amount": 9.99,
+  "startDate": "2026-09-25", "recurrence": "MONTHLY", "remindDaysBefore": 3 }
+```
+
+- A repeating item is stored once; the calendar endpoint expands it into each day it falls on. Month-end dates stay stable (31 Jan repeats on 28 Feb, then 31 Mar).
+- Completing a repeating item moves it to its next occurrence. Subscriptions are assumed to be charged automatically, so they move on by themselves after the due date. Bills and tasks wait until you mark them done.
+- A background job runs at startup and every hour. It creates one in-app notification per occurrence once the due date is inside the item's reminder window, and keeps reminding for up to 7 days after a missed date. The job also runs for a user whenever they read their notifications, so a sleeping free-tier host still catches up.
+
+Reminder settings (all optional): `app.reminders.enabled` (default `true`), `app.reminders.cron` (default top of every hour), `app.reminders.zone` (default `Europe/London`, used to decide what "today" is).
 
 ## Database schema
 
-Three tables: `users`, `bank_accounts`, and `transactions`. Bank accounts store the Plaid access token needed to fetch transactions. Transactions store merchant name, amount, date, and category from Plaid.
+Five tables: `users`, `bank_accounts`, `transactions`, `calendar_events` and `notifications`. Bank accounts store the Plaid access token needed to fetch transactions. Transactions store merchant name, amount, date, and category from Plaid. Calendar events hold tasks, payments and subscriptions; notifications hold the reminders generated for them (unique per event and due date).
+
+## Running the tests
+
+```bash
+./mvnw test
+```
+
+Tests use an in-memory H2 database, so PostgreSQL isn't needed.
 
 ## Running locally
 
