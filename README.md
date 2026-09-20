@@ -15,6 +15,7 @@ Spending tracker with bank connections, a payment calendar and reminders, in a g
 |---|---|
 | `backend/` | Spring Boot API: auth, Plaid, calendar, reminders, subscription detection (see its README) |
 | `frontend/` | React app (see its README) |
+| `design/` | Vector screens (SVG) and design tokens you can open in Figma, Penpot, Sketch and others (see its README) |
 
 ## Running it locally
 
