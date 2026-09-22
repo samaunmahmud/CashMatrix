@@ -1,6 +1,6 @@
 package com.expensetracker.expensetracker.controller;
 
-import com.expensetracker.expensetracker.model.Transaction;
+import com.expensetracker.expensetracker.dto.TransactionResponse;
 import com.expensetracker.expensetracker.security.UserPrincipal;
 import com.expensetracker.expensetracker.service.BudgetAlertService;
 import com.expensetracker.expensetracker.service.TransactionService;
@@ -34,7 +34,9 @@ public class TransactionController {
     }
 
     @GetMapping
-    public List<Transaction> getTransactions(@AuthenticationPrincipal UserPrincipal principal) {
-        return transactionService.getTransactionsForUser(principal.getUser());
+    public List<TransactionResponse> getTransactions(@AuthenticationPrincipal UserPrincipal principal) {
+        return transactionService.getTransactionsForUser(principal.getUser()).stream()
+                .map(TransactionResponse::from)
+                .toList();
     }
 }

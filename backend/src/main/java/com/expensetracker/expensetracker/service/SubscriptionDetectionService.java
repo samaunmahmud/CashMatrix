@@ -27,9 +27,7 @@ import java.util.stream.Collectors;
  * same amount on a steady weekly or monthly rhythm.
  *
  * It can only see what has been synced (90 days), so it recognises weekly and monthly
- * charges but not yearly ones. A merchant is grouped by the first meaningful word of
- * its name, which is coarse but copes with the reference numbers banks tack on
- * ("NETFLIX.COM 866-579", "Netflix 12345").
+ * charges but not yearly ones. Merchants are grouped by {@link MerchantNames#key}.
  */
 @Service
 @RequiredArgsConstructor
@@ -41,12 +39,6 @@ public class SubscriptionDetectionService {
     static final BigDecimal MAX_AMOUNT_SPREAD = new BigDecimal("1.15");
 
     private static final Pattern KEY_FORMAT = Pattern.compile("[a-z]{3,40}");
-    private static final Pattern DOMAIN_SUFFIX = Pattern.compile("\\.(com|co\\.uk|uk|net|org|io)\\b", Pattern.CASE_INSENSITIVE);
-    private static final Set<String> COMPANY_SUFFIXES = Set.of("ltd", "limited", "plc", "inc", "llc");
-    private static final Set<String> NOISE = Set.of(
-            "the", "card", "payment", "purchase", "pos", "dd", "direct", "debit", "www", "http", "https",
-            "com", "uk", "ltd", "limited", "plc", "inc", "llc", "gbp", "visa", "recurring", "subscription",
-            "monthly", "standing", "order", "faster", "payments", "bill", "online", "web");
 
     private final TransactionRepository transactionRepository;
     private final BankAccountRepository bankAccountRepository;
@@ -179,31 +171,13 @@ public class SubscriptionDetectionService {
                 sorted.size(), sorted.size() >= 3 ? "HIGH" : "MEDIUM"));
     }
 
-    /** First meaningful word of a merchant name, lower-case letters only. Null if there isn't one. */
     static String merchantKey(String name) {
-        if (name == null) return null;
-        return Arrays.stream(DOMAIN_SUFFIX.matcher(name.toLowerCase(Locale.ROOT)).replaceAll("").split("[^a-z]+"))
-                .filter(token -> token.length() >= 3 && !NOISE.contains(token))
-                .findFirst()
-                .orElse(null);
+        return MerchantNames.key(name);
     }
 
-    /**
-     * A readable name from the most recent charge: domain suffixes, company suffixes and reference numbers
-     * dropped. Shouting names ("DISNEY PLUS") become title case, but names that already have their own
-     * capitalisation ("PureGym", "Spotify AB") are left as the merchant wrote them.
-     */
+    /** A readable name, taken from the most recent charge. */
     static String displayName(List<Transaction> chronological) {
-        String raw = chronological.get(chronological.size() - 1).getName();
-        List<String> words = new ArrayList<>();
-        for (String word : DOMAIN_SUFFIX.matcher(raw).replaceAll("").trim().split("\\s+")) {
-            if (word.matches(".*\\d.*")) break; // everything from the first reference number on is noise
-            if (word.isBlank() || COMPANY_SUFFIXES.contains(word.toLowerCase(Locale.ROOT).replaceAll("[^a-z]", ""))) continue;
-            boolean shouting = word.equals(word.toUpperCase(Locale.ROOT)) && word.length() > 3;
-            words.add(shouting ? Character.toUpperCase(word.charAt(0)) + word.substring(1).toLowerCase(Locale.ROOT) : word);
-        }
-        String name = String.join(" ", words).trim();
-        return name.isEmpty() ? raw.trim() : name;
+        return MerchantNames.display(chronological.get(chronological.size() - 1).getName());
     }
 
     private String requireValidKey(String key) {

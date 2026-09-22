@@ -13,7 +13,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.text.NumberFormat;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
@@ -122,16 +121,10 @@ public class BudgetAlertService {
                 .map(BankAccount::getCurrency)
                 .filter(Objects::nonNull)
                 .findFirst()
-                .orElse("GBP");
+                .orElse(Money.DEFAULT_CURRENCY);
     }
 
     private static String money(BigDecimal amount, String currency) {
-        NumberFormat format = NumberFormat.getCurrencyInstance(Locale.UK);
-        try {
-            format.setCurrency(Currency.getInstance(currency));
-        } catch (IllegalArgumentException ex) {
-            // An unknown code from the bank: fall back to pounds rather than failing the alert.
-        }
-        return format.format(amount);
+        return Money.format(amount, currency);
     }
 }

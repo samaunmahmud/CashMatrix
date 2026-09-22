@@ -29,7 +29,7 @@ public class NotificationSettingsController {
     public NotificationSettingsResponse update(
             @Valid @RequestBody NotificationSettingsRequest request,
             @AuthenticationPrincipal UserPrincipal principal) {
-        return settingsService.setEmailEnabled(principal.getUser(), request.getEmailEnabled());
+        return settingsService.update(principal.getUser(), request);
     }
 
     /** Sends a test reminder through the channels that are switched on. */

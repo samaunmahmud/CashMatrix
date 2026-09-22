@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.service.delivery;
 
+import com.expensetracker.expensetracker.dto.NotificationSettingsRequest;
 import com.expensetracker.expensetracker.dto.NotificationSettingsResponse;
 import com.expensetracker.expensetracker.dto.PushSubscribeRequest;
 import com.expensetracker.expensetracker.model.NotificationPreference;
@@ -36,19 +37,24 @@ public class NotificationSettingsService {
 
     @Transactional(readOnly = true)
     public NotificationSettingsResponse get(User user) {
-        return describe(user, preferenceRepository.findByUser(user).map(NotificationPreference::isEmailEnabled).orElse(false));
+        return describe(user, preferenceRepository.findByUser(user).orElseGet(NotificationPreference::new));
     }
 
     @Transactional
-    public NotificationSettingsResponse setEmailEnabled(User user, boolean enabled) {
+    public NotificationSettingsResponse update(User user, NotificationSettingsRequest request) {
+        if (request.isEmpty()) {
+            throw new IllegalArgumentException("Nothing to change");
+        }
         NotificationPreference preference = preferenceRepository.findByUser(user).orElseGet(() -> {
             NotificationPreference created = new NotificationPreference();
             created.setUser(user);
             return created;
         });
-        preference.setEmailEnabled(enabled);
+        if (request.getEmailEnabled() != null) preference.setEmailEnabled(request.getEmailEnabled());
+        if (request.getTransactionAlertsEnabled() != null) preference.setTransactionAlertsEnabled(request.getTransactionAlertsEnabled());
+        if (request.getTransactionAlertMinimum() != null) preference.setTransactionAlertMinimum(request.getTransactionAlertMinimum());
         preferenceRepository.save(preference);
-        return describe(user, enabled);
+        return describe(user, preference);
     }
 
     @Transactional
@@ -113,13 +119,15 @@ public class NotificationSettingsService {
         return Map.of("email", email, "push", push);
     }
 
-    private NotificationSettingsResponse describe(User user, boolean emailEnabled) {
+    private NotificationSettingsResponse describe(User user, NotificationPreference preference) {
         return new NotificationSettingsResponse(
-                emailEnabled,
+                preference.isEmailEnabled(),
                 emailSender.isConfigured(),
                 pushGateway.isConfigured(),
                 pushGateway.publicKey(),
-                pushRepository.countByUser(user));
+                pushRepository.countByUser(user),
+                preference.isTransactionAlertsEnabled(),
+                preference.getTransactionAlertMinimum());
     }
 
     private void requireKnownPushService(String endpoint) {

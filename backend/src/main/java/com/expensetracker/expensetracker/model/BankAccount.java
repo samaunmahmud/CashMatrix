@@ -65,6 +65,11 @@ public class BankAccount {
     @Column(name = "balance_updated_at")
     private Instant balanceUpdatedAt;
 
+    // When transactions were last pulled for this account. Empty until the first sync, which
+    // imports months of history at once and so mustn't raise an alert for every transaction.
+    @Column(name = "transactions_synced_at")
+    private Instant transactionsSyncedAt;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 }

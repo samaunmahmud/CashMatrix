@@ -10,7 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.Clock;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -29,15 +31,25 @@ public class TransactionService {
     private final BankAccountRepository bankAccountRepository;
     private final BankAccountService bankAccountService;
     private final PlaidService plaidService;
+    private final TransactionAlertService alertService;
+    private final Clock clock;
 
-    /** Pulls the last 90 days from Plaid, saving what is new, and refreshes account balances. */
-    @SuppressWarnings("unchecked")
+    /** A sync the user asked for: they are in the app, so any alerts it raises are shown there. */
     public int syncTransactions(User user) {
+        return syncTransactions(user, true);
+    }
+
+    /**
+     * Pulls the last 90 days from Plaid, saving what is new, refreshes account balances, and raises
+     * money in / money out alerts for new transactions (except on an account's first import).
+     */
+    @SuppressWarnings("unchecked")
+    public int syncTransactions(User user, boolean userIsPresent) {
         List<BankAccount> accounts = bankAccountRepository.findByUser(user);
         if (accounts.isEmpty()) return 0;
 
-        String endDate = LocalDate.now().toString();
-        String startDate = LocalDate.now().minusDays(HISTORY_DAYS).toString();
+        String endDate = LocalDate.now(clock).toString();
+        String startDate = LocalDate.now(clock).minusDays(HISTORY_DAYS).toString();
 
         Map<String, BankAccount> byPlaidId = accounts.stream()
                 .collect(Collectors.toMap(BankAccount::getPlaidAccountId, Function.identity(), (a, b) -> a));
@@ -48,6 +60,7 @@ public class TransactionService {
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
         int savedCount = 0;
+        List<Transaction> alertable = new ArrayList<>();
 
         for (String accessToken : accessTokens) {
             int offset = 0;
@@ -59,7 +72,10 @@ public class TransactionService {
                 total = totalValue instanceof Number number ? number.intValue() : transactions.size();
 
                 for (Map<String, Object> tx : transactions) {
-                    if (saveIfNew(tx, byPlaidId)) savedCount++;
+                    Transaction saved = saveIfNew(tx, byPlaidId);
+                    if (saved == null) continue;
+                    savedCount++;
+                    if (saved.getBankAccount().getTransactionsSyncedAt() != null) alertable.add(saved);
                 }
 
                 if (transactions.isEmpty()) break; // nothing more to fetch, whatever the total says
@@ -69,6 +85,15 @@ public class TransactionService {
             refreshBalances(accessToken);
         }
 
+        // An update query rather than saving the accounts: they were loaded before the balances were
+        // refreshed, so saving them would put the old balances back.
+        bankAccountRepository.markSynced(user, clock.instant());
+
+        try {
+            alertService.alert(user, alertable, userIsPresent);
+        } catch (RuntimeException ex) {
+            log.warn("Could not raise transaction alerts for user {}: {}", user.getId(), ex.getMessage());
+        }
         return savedCount;
     }
 
@@ -77,16 +102,17 @@ public class TransactionService {
         return transactionRepository.findByBankAccountInOrderByTransactionDateDesc(accounts);
     }
 
+    /** @return the saved transaction, or null if it was already stored or isn't for one of the user's accounts */
     @SuppressWarnings("unchecked")
-    private boolean saveIfNew(Map<String, Object> tx, Map<String, BankAccount> byPlaidId) {
+    private Transaction saveIfNew(Map<String, Object> tx, Map<String, BankAccount> byPlaidId) {
         String plaidTxId = (String) tx.get("transaction_id");
         if (transactionRepository.findByPlaidTransactionId(plaidTxId).isPresent()) {
-            return false;
+            return null;
         }
 
         BankAccount account = byPlaidId.get((String) tx.get("account_id"));
         if (account == null) {
-            return false; // belongs to an account this user has not saved
+            return null; // belongs to an account this user has not saved
         }
 
         Transaction transaction = new Transaction();
@@ -102,8 +128,7 @@ public class TransactionService {
             transaction.setPlaidCategory(categories.get(categories.size() - 1));
         }
 
-        transactionRepository.save(transaction);
-        return true;
+        return transactionRepository.save(transaction);
     }
 
     // Balances are a bonus on top of the sync: if Plaid can't supply them right now,
