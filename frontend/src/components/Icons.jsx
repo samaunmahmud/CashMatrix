@@ -34,3 +34,5 @@ export const BudgetIcon = icon(<><path d="M21 12a9 9 0 11-9-9v9z" /><path d="M15
 export const ChevronLeftIcon = icon(<path d="M15 6l-6 6 6 6" />);
 export const PencilIcon = icon(<><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13 7l4 4" /></>);
 export const TrashIcon = icon(<><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13M9 7V4h6v3" /></>);
+export const FingerprintIcon = icon(<><path d="M12 11v3a8 8 0 01-1.5 4.6" /><path d="M8.5 9.5A4 4 0 0116 11v1.5" /><path d="M16 15.5a13 13 0 01-.6 3" /><path d="M5.4 7.5A8 8 0 0120 11v2" /><path d="M4 12v.5a6 6 0 01-.6 2.6" /><path d="M8 12.5v1a12 12 0 01-1.3 5.4" /></>);
+export const SearchIcon = icon(<><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></>);

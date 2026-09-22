@@ -1,0 +1,28 @@
+.account-page { max-width: 760px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; }
+.account-page .banner { margin-bottom: 0; }
+
+.back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  font-weight: 600;
+  text-decoration: none;
+  border-radius: 8px;
+}
+.back-link:hover { text-decoration: underline; }
+
+.account-hero .account-card { min-height: 150px; padding: 20px; }
+.account-hero .account-balance-amount { font-size: 2.25rem; }
+.account-hero.skeleton { min-height: 150px; border-radius: 16px; }
+
+.statement-tools { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.search-field { position: relative; flex: 1 1 240px; display: flex; align-items: center; }
+.search-field svg { position: absolute; left: 14px; color: var(--muted); pointer-events: none; }
+.search-field .input { padding-left: 40px; }
+.statement-filter { flex: 0 1 320px; }
+.statement-filter .segmented-options { margin-top: 0; }
+.statement-filter span { padding: 11px 8px; white-space: nowrap; }
+.statement-totals { margin-bottom: 12px; font-size: 0.875rem; color: var(--muted); }
+.statement-totals strong { color: var(--text); }
+.statement-totals .tx-in { color: var(--brand); }

@@ -6,6 +6,9 @@ Spending tracker with bank connections, a payment calendar and reminders, in a g
 
 - Link a bank (UK banks by default, through Plaid) and see balances, spending by category and transactions
 - Spot subscriptions and regular bills in your transactions and add them to your calendar in one tap
+- Tap an account for a searchable statement grouped by day, and see spending by category or retailer
+- Get alerts for money in and out, like a bank app, even when the app is closed
+- Log in with your fingerprint or face (passkeys)
 - Set monthly budgets per category and get a warning at 80% and when you go over
 - See spending month by month, and how this month compares with the same point last month
 - Keep a calendar of payments, subscriptions and tasks, with repeats and a reminder before each one

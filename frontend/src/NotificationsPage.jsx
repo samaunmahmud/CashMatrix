@@ -60,7 +60,7 @@ export default function NotificationsPage() {
       <div className="page-head">
         <div>
           <h1>Alerts</h1>
-          <p className="muted">Reminders for payments, subscriptions and tasks that are coming up, and budget warnings.</p>
+          <p className="muted">Reminders for payments, subscriptions and tasks, money in and out of your accounts, and budget warnings.</p>
         </div>
         {unread > 0 && (
           <button type="button" className="btn btn-outline" onClick={markAllRead}>

@@ -63,3 +63,11 @@ export const monthLabel = (month, short = false) => {
   return new Intl.DateTimeFormat("en-GB", short ? { month: "short" } : { month: "long", year: "numeric" })
     .format(new Date(year, m - 1, 1));
 };
+
+/** "Today", "Yesterday", or "Monday 21 September" for a statement's day headings. */
+export const dayHeading = (iso) => {
+  const today = todayISO();
+  if (iso === today) return "Today";
+  if (iso === addDays(today, -1)) return "Yesterday";
+  return new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long" }).format(parseISO(iso));
+};

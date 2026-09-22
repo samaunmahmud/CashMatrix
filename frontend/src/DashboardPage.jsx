@@ -34,6 +34,7 @@ export default function DashboardPage() {
   const [syncing, setSyncing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [reloadKey, setReloadKey] = useState(0);
+  const [spendingBy, setSpendingBy] = useState("category");
 
   const { user } = useAuth();
   const { unread, refreshUnread } = useNotifications();
@@ -52,7 +53,7 @@ export default function DashboardPage() {
       .then((res) => active && setTransactions(res.data))
       .catch(console.error)
       .finally(() => active && setLoadingTransactions(false));
-    calendarApi.entries(today, addDays(today, 14))
+    calendarApi.entries(today, addDays(today, 31))
       .then((res) => active && setUpcoming(res.data.filter((entry) => !entry.completed)))
       .catch(() => {});
     subscriptionApi.suggestions()
@@ -117,10 +118,12 @@ export default function DashboardPage() {
   const currency = accounts?.find((a) => a.currency)?.currency;
 
   // Plaid reports money leaving the account as a positive amount and money arriving as negative.
+  const groupOf = (tx) =>
+    spendingBy === "retailer" ? tx.merchant || tx.name : tx.userCategory || tx.plaidCategory || "Uncategorised";
   const categoryTotals = transactions.reduce((acc, tx) => {
     if (tx.amount <= 0) return acc;
-    const category = tx.userCategory || tx.plaidCategory || "Uncategorised";
-    acc[category] = (acc[category] || 0) + tx.amount;
+    const group = groupOf(tx);
+    acc[group] = (acc[group] || 0) + tx.amount;
     return acc;
   }, {});
   const categories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
@@ -221,10 +224,21 @@ export default function DashboardPage() {
                 <h2 id="categories-title">Where your money went</h2>
                 <span className="muted">Last 90 days</span>
               </div>
+              <fieldset className="segmented spending-by">
+                <legend className="sr-only">Group spending by</legend>
+                <div className="segmented-options">
+                  {[["category", "Category"], ["retailer", "Retailer"]].map(([value, label]) => (
+                    <label key={value}>
+                      <input type="radio" name="spending-by" value={value} checked={spendingBy === value} onChange={() => setSpendingBy(value)} />
+                      <span>{label}</span>
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
               {categories.length === 0 ? (
                 <p className="empty-state">No spending data yet.</p>
               ) : (
-                <SpendingDonut categories={categories} total={totalSpent} currency={currency} />
+                <SpendingDonut categories={categories} total={totalSpent} currency={currency} groupedBy={spendingBy} />
               )}
             </section>
           )}
@@ -243,12 +257,12 @@ export default function DashboardPage() {
         <aside className="home-side">
           <section className="card" aria-labelledby="coming-up-title">
             <div className="card-header">
-              <h2 id="coming-up-title">Coming up</h2>
+              <h2 id="coming-up-title">Upcoming payments</h2>
               <Link to="/calendar" className="see-all">Calendar</Link>
             </div>
             {upcoming.length === 0 ? (
               <p className="empty-state">
-                Nothing due in the next two weeks.{" "}
+                Nothing due in the next 31 days.{" "}
                 <button type="button" className="link-button" onClick={() => setAddOpen(true)}>Add a payment</button>
               </p>
             ) : (

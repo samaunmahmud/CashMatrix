@@ -34,6 +34,15 @@ api.interceptors.response.use(
 export const authApi = {
   signup: (data) => api.post("/auth/signup", data),
   login: (data) => api.post("/auth/login", data),
+  passkeyStart: () => api.post("/auth/passkey/start"),
+  passkeyFinish: (requestId, credential) => api.post("/auth/passkey/finish", { requestId, credential }),
+};
+
+export const passkeyApi = {
+  list: () => api.get("/passkeys"),
+  start: () => api.post("/passkeys/register/start"),
+  finish: (requestId, credential, name) => api.post("/passkeys/register/finish", { requestId, credential, name }),
+  remove: (id) => api.delete(`/passkeys/${id}`),
 };
 
 export const plaidApi = {
@@ -87,6 +96,7 @@ export const insightsApi = {
 export const settingsApi = {
   get: () => api.get("/settings/notifications"),
   setEmail: (emailEnabled) => api.put("/settings/notifications", { emailEnabled }),
+  setTransactionAlerts: (changes) => api.put("/settings/notifications", changes),
   sendTest: () => api.post("/settings/notifications/test"),
   subscribePush: (subscription) => api.post("/push/subscribe", subscription),
   unsubscribePush: (endpoint) => api.post("/push/unsubscribe", { endpoint }),

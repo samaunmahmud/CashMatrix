@@ -1,9 +1,25 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { settingsApi } from "./api";
+import { passkeyApi, settingsApi } from "./api";
 import { useAuth } from "./AuthContext";
+import { FingerprintIcon, TrashIcon } from "./components/Icons";
+import { formatMoney } from "./format";
+import { createPasskey, passkeysSupported, wasCancelled } from "./passkeys";
 import { currentPushSubscription, disablePush, enablePush, pushSupported } from "./push";
 import "./styles/settings.css";
+
+const ALERT_MINIMUMS = [0, 10, 25, 50, 100, 250];
+
+/** A name for a new passkey the user will recognise later, from the device it was made on. */
+function deviceName() {
+  const ua = navigator.userAgent;
+  if (/iPhone/.test(ua)) return "iPhone";
+  if (/iPad/.test(ua)) return "iPad";
+  if (/Android/.test(ua)) return "Android phone";
+  if (/Mac/.test(ua)) return "Mac";
+  if (/Windows/.test(ua)) return "Windows computer";
+  return "";
+}
 
 const TEST_WORDS = {
   email: {
@@ -44,8 +60,10 @@ export default function SettingsPage() {
   const [loadFailed, setLoadFailed] = useState(false);
   const [thisDevice, setThisDevice] = useState(null); // null = still checking
   const [busy, setBusy] = useState("");
-  const [message, setMessage] = useState({ kind: "", text: "" });
+  // Shown in the card of whatever produced it ("reminders" or "passkeys").
+  const [message, setMessage] = useState({ kind: "", text: "", card: "" });
   const [reloadKey, setReloadKey] = useState(0);
+  const [passkeys, setPasskeys] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -56,6 +74,9 @@ export default function SettingsPage() {
         setLoadFailed(false);
       })
       .catch(() => active && setLoadFailed(true));
+    passkeyApi.list()
+      .then((res) => active && setPasskeys(res.data))
+      .catch(() => active && setPasskeys([]));
     currentPushSubscription()
       .then((subscription) => active && setThisDevice(Boolean(subscription)))
       .catch(() => active && setThisDevice(false));
@@ -68,15 +89,38 @@ export default function SettingsPage() {
 
   const run = async (name, action) => {
     setBusy(name);
-    setMessage({ kind: "", text: "" });
+    setMessage({ kind: "", text: "", card: "" });
     try {
       await action();
       reload();
     } catch (err) {
-      setMessage({ kind: "error", text: err.response?.data?.error || err.message || "Something went wrong." });
+      setMessage({
+        kind: "error",
+        text: err.response?.data?.error || err.message || "Something went wrong.",
+        card: name === "passkey" ? "passkeys" : "reminders",
+      });
     } finally {
       setBusy("");
     }
+  };
+
+  const addPasskey = () =>
+    run("passkey", async () => {
+      try {
+        const { data } = await passkeyApi.start();
+        const credential = await createPasskey(data.options);
+        await passkeyApi.finish(data.requestId, credential, deviceName());
+        setMessage({ kind: "ok", text: "Passkey added. Next time, log in with your fingerprint or face.", card: "passkeys" });
+      } catch (err) {
+        if (wasCancelled(err)) return;
+        if (err?.name === "InvalidStateError") throw new Error("This device already has a passkey for your account.", { cause: err });
+        throw err;
+      }
+    });
+
+  const removePasskey = (passkey) => {
+    if (!window.confirm(`Remove the passkey "${passkey.name}"? You can still log in with your password.`)) return;
+    run("passkey", () => passkeyApi.remove(passkey.id));
   };
 
   const sendTest = () =>
@@ -84,7 +128,7 @@ export default function SettingsPage() {
       const { data } = await settingsApi.sendTest();
       const lines = [TEST_WORDS.email[data.email], TEST_WORDS.push[data.push]];
       const anySent = data.email === "SENT" || data.push === "SENT";
-      setMessage({ kind: anySent ? "ok" : "info", text: lines.join(" ") });
+      setMessage({ kind: anySent ? "ok" : "info", text: lines.join(" "), card: "reminders" });
     });
 
   const handleLogout = () => {
@@ -164,6 +208,40 @@ export default function SettingsPage() {
           />
         </div>
 
+        <div className="setting-row">
+          <div className="setting-text">
+            <h3 id="tx-alerts-label">Money in and out</h3>
+            <p className="muted">An alert for each new payment or deposit, after your bank syncs.</p>
+            {settings?.transactionAlertsEnabled && (
+              <label className="setting-inline">
+                <span>For amounts of</span>
+                <select
+                  className="input input-sm"
+                  value={Number(settings.transactionAlertMinimum)}
+                  disabled={busy === "tx-alerts"}
+                  onChange={(e) =>
+                    run("tx-alerts", () => settingsApi.setTransactionAlerts({ transactionAlertMinimum: Number(e.target.value) }))
+                  }
+                >
+                  {[...new Set([...ALERT_MINIMUMS, Number(settings.transactionAlertMinimum)])]
+                    .sort((a, b) => a - b)
+                    .map((amount) => (
+                      <option key={amount} value={amount}>
+                        {amount === 0 ? "any amount" : `${formatMoney(amount).replace(/\.00$/, "")} or more`}
+                      </option>
+                    ))}
+                </select>
+              </label>
+            )}
+          </div>
+          <Switch
+            checked={Boolean(settings?.transactionAlertsEnabled)}
+            disabled={!settings || busy === "tx-alerts"}
+            labelledBy="tx-alerts-label"
+            onChange={(enabled) => run("tx-alerts", () => settingsApi.setTransactionAlerts({ transactionAlertsEnabled: enabled }))}
+          />
+        </div>
+
         <div className="settings-test">
           <button
             type="button"
@@ -173,12 +251,60 @@ export default function SettingsPage() {
           >
             {busy === "test" ? "Sending…" : "Send a test reminder"}
           </button>
-          {message.text && (
+          {message.card === "reminders" && (
             <p className={message.kind === "error" ? "error-text" : "settings-result"} role="status">
               {message.text}
             </p>
           )}
         </div>
+      </section>
+
+      <section className="card settings-card" aria-labelledby="passkeys-title">
+        <h2 id="passkeys-title">Log in with fingerprint or face</h2>
+        <p className="muted settings-intro">
+          A passkey lets you log in with your device's fingerprint, face or screen lock instead of your password.
+          It stays on your device, and CashMatrix never sees your fingerprint or face.
+        </p>
+
+        {passkeys?.length > 0 && (
+          <ul className="passkey-list">
+            {passkeys.map((passkey) => (
+              <li key={passkey.id}>
+                <span className="passkey-icon" aria-hidden="true"><FingerprintIcon size={20} /></span>
+                <span className="passkey-text">
+                  <strong>{passkey.name}</strong>
+                  <span className="muted">
+                    Added {new Date(passkey.createdAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    {passkey.lastUsedAt &&
+                      ` · last used ${new Date(passkey.lastUsedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}`}
+                  </span>
+                </span>
+                <button
+                  type="button"
+                  className="icon-btn icon-btn-danger"
+                  onClick={() => removePasskey(passkey)}
+                  disabled={busy === "passkey"}
+                  aria-label={`Remove passkey ${passkey.name}`}
+                >
+                  <TrashIcon size={18} />
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {passkeysSupported() ? (
+          <button type="button" className="btn btn-outline" onClick={addPasskey} disabled={busy === "passkey" || passkeys === null}>
+            <FingerprintIcon size={20} /> {busy === "passkey" ? "Waiting for your device…" : "Add a passkey on this device"}
+          </button>
+        ) : (
+          <p className="muted">This browser doesn't support passkeys.</p>
+        )}
+        {message.card === "passkeys" && (
+          <p className={message.kind === "error" ? "error-text" : "settings-result"} role="status">
+            {message.text}
+          </p>
+        )}
       </section>
 
       <section className="card settings-card" aria-labelledby="account-title">

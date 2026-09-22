@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.config;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -14,6 +15,7 @@ import org.springframework.web.method.annotation.MethodArgumentTypeMismatchExcep
 import java.util.HashMap;
 import java.util.Map;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -62,6 +64,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Map<String, String>> handleGeneric(Exception ex) {
+        // The caller gets a vague message, so the details have to be in the log.
+        log.error("Unhandled error", ex);
         Map<String, String> body = new HashMap<>();
         body.put("error", "Something went wrong. Please try again.");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);

@@ -23,3 +23,18 @@
 .account-details div:first-child { border-top: 0; }
 .account-details dt { width: 72px; flex: none; color: var(--muted); font-size: 0.875rem; }
 .account-details dd { margin: 0; font-weight: 500; overflow-wrap: anywhere; }
+
+.setting-inline { display: inline-flex; align-items: center; gap: 8px; margin-top: 8px; font-size: 0.875rem; }
+.input-sm { width: auto; min-height: 38px; padding: 0 10px; }
+.settings-intro { margin: 6px 0 14px; font-size: 0.875rem; }
+
+.passkey-list { margin: 0 0 16px; padding: 0; list-style: none; }
+.passkey-list li { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-top: 1px solid var(--line); }
+.passkey-list li:last-child { border-bottom: 1px solid var(--line); }
+.passkey-icon {
+  display: inline-flex; flex: none; align-items: center; justify-content: center;
+  width: 38px; height: 38px; border-radius: 50%; background: var(--brand-soft); color: var(--brand);
+}
+.passkey-text { display: flex; flex: 1; min-width: 0; flex-direction: column; font-size: 0.875rem; }
+.passkey-text strong { font-size: 0.95rem; }
+.settings-page .icon-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; }

@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { authApi } from "./api";
 import { useAuth } from "./AuthContext";
+import { FingerprintIcon } from "./components/Icons";
 import TigerLogo from "./components/TigerLogo";
+import { passkeysSupported, signInWithPasskey, wasCancelled } from "./passkeys";
 import "./styles/auth.css";
 
 export default function LoginPage() {
@@ -18,6 +20,24 @@ export default function LoginPage() {
   const navigate = useNavigate();
 
   if (user) return <Navigate to="/dashboard" replace />;
+
+  const loginWithPasskey = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      const { data } = await authApi.passkeyStart();
+      const credential = await signInWithPasskey(data.options);
+      const response = await authApi.passkeyFinish(data.requestId, credential);
+      login(response.data);
+      navigate("/dashboard");
+    } catch (err) {
+      if (!wasCancelled(err)) {
+        setError(err.response?.data?.error || "Couldn't log in with a passkey. Please use your password.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,6 +133,15 @@ export default function LoginPage() {
             {loading ? "Please wait…" : isSignup ? "Sign up" : "Log in"}
           </button>
         </form>
+
+        {!isSignup && passkeysSupported() && (
+          <>
+            <p className="auth-or"><span>or</span></p>
+            <button type="button" className="btn btn-outline auth-passkey" onClick={loginWithPasskey} disabled={loading}>
+              <FingerprintIcon size={20} /> Log in with fingerprint or face
+            </button>
+          </>
+        )}
 
         <p className="auth-toggle">
           {isSignup ? "Already have an account?" : "New to CashMatrix?"}{" "}

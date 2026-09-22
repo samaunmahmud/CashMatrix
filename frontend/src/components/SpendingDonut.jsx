@@ -16,7 +16,7 @@ function slicesOf(categories) {
   return [...top, ["Other", otherTotal]];
 }
 
-export default function SpendingDonut({ categories, total, currency }) {
+export default function SpendingDonut({ categories, total, currency, groupedBy = "category" }) {
   const slices = slicesOf(categories);
   // Each slice starts where the previous one ended, so work out the arc lengths and start points up front.
   const lengths = slices.map(([, amount]) => (amount / total) * CIRCUMFERENCE);
@@ -30,7 +30,7 @@ export default function SpendingDonut({ categories, total, currency }) {
           height={SIZE}
           viewBox={`0 0 ${SIZE} ${SIZE}`}
           role="img"
-          aria-label={`Spending by category, ${formatMoney(total, currency)} in total`}
+          aria-label={`Spending by ${groupedBy}, ${formatMoney(total, currency)} in total`}
         >
           <circle cx={SIZE / 2} cy={SIZE / 2} r={RADIUS} fill="none" stroke="var(--brand-soft)" strokeWidth={STROKE} />
           <g transform={`rotate(-90 ${SIZE / 2} ${SIZE / 2})`}>

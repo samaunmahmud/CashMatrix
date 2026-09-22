@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { formatMoney } from "../format";
 import { BankIcon } from "./Icons";
 
@@ -27,11 +28,20 @@ function describe(account) {
   };
 }
 
+/** A tappable account card that opens the account's own page, as in a banking app. */
 export default function AccountCard({ account }) {
+  return (
+    <Link to={`/accounts/${account.id}`} className="account-link" aria-label={`${account.name}, ${describe(account).label}. View transactions`}>
+      <AccountSummary account={account} />
+    </Link>
+  );
+}
+
+export function AccountSummary({ account }) {
   const { label, headline, headlineCaption, secondary } = describe(account);
 
   return (
-    <article className="account-card" aria-label={`${account.name}, ${label}`}>
+    <article className="account-card">
       <div className="account-card-top">
         <span className="account-icon"><BankIcon size={18} /></span>
         <div className="account-names">
