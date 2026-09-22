@@ -73,6 +73,17 @@ export const subscriptionApi = {
   dismiss: (key) => api.post(`/subscriptions/suggestions/${key}/dismiss`),
 };
 
+export const budgetApi = {
+  overview: (month) => api.get("/budgets", { params: month ? { month } : {} }),
+  create: (data) => api.post("/budgets", data),
+  update: (id, data) => api.put(`/budgets/${id}`, data),
+  remove: (id) => api.delete(`/budgets/${id}`),
+};
+
+export const insightsApi = {
+  get: (months = 6) => api.get("/insights", { params: { months } }),
+};
+
 export const settingsApi = {
   get: () => api.get("/settings/notifications"),
   setEmail: (emailEnabled) => api.put("/settings/notifications", { emailEnabled }),

@@ -6,6 +6,8 @@ Spending tracker with bank connections, a payment calendar and reminders, in a g
 
 - Link a bank (UK banks by default, through Plaid) and see balances, spending by category and transactions
 - Spot subscriptions and regular bills in your transactions and add them to your calendar in one tap
+- Set monthly budgets per category and get a warning at 80% and when you go over
+- See spending month by month, and how this month compares with the same point last month
 - Keep a calendar of payments, subscriptions and tasks, with repeats and a reminder before each one
 - Get reminders in the app, by email, and as notifications on your phone or computer
 
@@ -13,7 +15,7 @@ Spending tracker with bank connections, a payment calendar and reminders, in a g
 
 | Folder | What it is |
 |---|---|
-| `backend/` | Spring Boot API: auth, Plaid, calendar, reminders, subscription detection (see its README) |
+| `backend/` | Spring Boot API: auth, Plaid, calendar, reminders, budgets, insights, subscription detection (see its README) |
 | `frontend/` | React app (see its README) |
 | `design/` | Vector screens (SVG) and design tokens you can open in Figma, Penpot, Sketch and others (see its README) |
 

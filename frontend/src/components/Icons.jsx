@@ -30,3 +30,7 @@ export const RepeatIcon = icon(<><path d="M17 2l4 4-4 4" /><path d="M3 11v-1a4 4
 export const RefreshIcon = icon(<><path d="M21 12a9 9 0 11-3-6.7L21 8" /><path d="M21 3v5h-5" /></>);
 export const ChevronRightIcon = icon(<path d="M9 6l6 6-6 6" />);
 export const CheckIcon = icon(<path d="M5 13l4 4L19 7" />);
+export const BudgetIcon = icon(<><path d="M21 12a9 9 0 11-9-9v9z" /><path d="M15 3.5A9 9 0 0120.5 9H15z" /></>);
+export const ChevronLeftIcon = icon(<path d="M15 6l-6 6 6 6" />);
+export const PencilIcon = icon(<><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M13 7l4 4" /></>);
+export const TrashIcon = icon(<><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13M9 7V4h6v3" /></>);

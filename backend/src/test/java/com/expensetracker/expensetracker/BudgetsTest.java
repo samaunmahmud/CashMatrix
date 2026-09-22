@@ -74,7 +74,8 @@ class BudgetsTest {
         // August, which must not count towards September
         spend("Tesco", "Groceries", null, "180.00", "2026-08-20");
         spend("Uber", "Taxi", null, "30.00", "2026-08-11");
-        spend("Uber", "Taxi", null, "22.00", "2026-07-11");
+        spend("Uber", "Taxi", null, "22.00", "2026-07-01");              // history starts on the 1st: July is complete
+        spend("Wagamama", "Restaurants", null, "20.00", "2026-08-08");
     }
 
     // --- overview ------------------------------------------------------------
@@ -127,16 +128,33 @@ class BudgetsTest {
     void suggestsCategoriesWithoutABudgetAndATypicalMonthlyLimit() throws Exception {
         budget("Groceries", "200");
 
-        // Busiest first. Taxi: 52 over the three months synced (Jul, Aug, Sep) = 17.33 a month, rounded up to 20.
+        // Based on the complete months, July and August. Taxi: 52 / 2 = 26, rounded up to 30.
+        // September is still under way, so "Eating out" (only seen this month) isn't suggested.
         mvc.perform(get("/api/budgets").header("Authorization", auth()))
+                .andExpect(jsonPath("$.suggestions.length()").value(2))
                 .andExpect(jsonPath("$.suggestions[0].category").value("Taxi"))
-                .andExpect(jsonPath("$.suggestions[0].suggestedLimit").value(20.0))
+                .andExpect(jsonPath("$.suggestions[0].suggestedLimit").value(30.0))
                 .andExpect(jsonPath("$.suggestions[1].category").value("Restaurants"))
-                .andExpect(jsonPath("$.suggestions[1].suggestedLimit").value(15.0))
-                .andExpect(jsonPath("$.suggestions[2].category").value("Eating out"))
-                .andExpect(jsonPath("$.suggestions[2].suggestedLimit").value(5.0))
+                .andExpect(jsonPath("$.suggestions[1].suggestedLimit").value(10.0))
                 .andExpect(jsonPath("$.suggestions[?(@.category=='Groceries')]").isEmpty())
                 .andExpect(jsonPath("$.suggestions[?(@.category=='Payroll')]").isEmpty());
+    }
+
+    @Test
+    void someoneWithOnlyAPartMonthOfHistoryGetsSuggestionsFromThisMonthSoFar() throws Exception {
+        user = newUser();
+        account = new BankAccount();
+        account.setUser(user);
+        account.setPlaidAccessToken("t");
+        account.setPlaidItemId("i");
+        account.setPlaidAccountId("a-" + UUID.randomUUID());
+        account.setName("New");
+        bankAccountRepository.save(account);
+        spend("Tesco", "Groceries", null, "33.00", "2026-09-10");
+
+        mvc.perform(get("/api/budgets").header("Authorization", auth()))
+                .andExpect(jsonPath("$.suggestions[0].category").value("Groceries"))
+                .andExpect(jsonPath("$.suggestions[0].suggestedLimit").value(35.0));
     }
 
     @Test

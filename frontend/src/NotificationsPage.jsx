@@ -42,7 +42,7 @@ export default function NotificationsPage() {
         // Not being able to mark it read shouldn't stop the user going to the item.
       }
     }
-    navigate(`/calendar?date=${notification.dueDate}`);
+    navigate(notification.link ?? `/calendar?date=${notification.dueDate}`);
   };
 
   const markAllRead = async () => {
@@ -60,7 +60,7 @@ export default function NotificationsPage() {
       <div className="page-head">
         <div>
           <h1>Alerts</h1>
-          <p className="muted">Reminders for payments, subscriptions and tasks that are coming up.</p>
+          <p className="muted">Reminders for payments, subscriptions and tasks that are coming up, and budget warnings.</p>
         </div>
         {unread > 0 && (
           <button type="button" className="btn btn-outline" onClick={markAllRead}>

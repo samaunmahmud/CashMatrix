@@ -48,3 +48,18 @@ export const updatedLabel = (isoInstant) => {
 
 export const shortDate = (iso) =>
   new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(parseISO(iso));
+
+// Months travel as "yyyy-MM" strings, matching the API.
+export const monthISO = (date = new Date()) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
+
+export const addMonths = (month, count) => {
+  const [year, m] = month.split("-").map(Number);
+  return monthISO(new Date(year, m - 1 + count, 1));
+};
+
+/** "September 2026", or with short = true "Sep". */
+export const monthLabel = (month, short = false) => {
+  const [year, m] = month.split("-").map(Number);
+  return new Intl.DateTimeFormat("en-GB", short ? { month: "short" } : { month: "long", year: "numeric" })
+    .format(new Date(year, m - 1, 1));
+};

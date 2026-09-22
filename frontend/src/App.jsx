@@ -4,6 +4,7 @@ import AppShell from "./components/AppShell";
 import LoginPage from "./LoginPage";
 import DashboardPage from "./DashboardPage";
 import CalendarPage from "./CalendarPage";
+import BudgetsPage from "./BudgetsPage";
 import NotificationsPage from "./NotificationsPage";
 import SettingsPage from "./SettingsPage";
 
@@ -25,6 +26,7 @@ function AppRoutes() {
       >
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
+        <Route path="/budgets" element={<BudgetsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
       </Route>

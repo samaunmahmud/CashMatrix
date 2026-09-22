@@ -2,12 +2,13 @@ import { NavLink, Outlet } from "react-router-dom";
 import { useAuth } from "../AuthContext";
 import { NotificationsProvider, useNotifications } from "../NotificationsContext";
 import TigerLogo from "./TigerLogo";
-import { BellIcon, CalendarIcon, HomeIcon, SettingsIcon } from "./Icons";
+import { BellIcon, BudgetIcon, CalendarIcon, HomeIcon, SettingsIcon } from "./Icons";
 import "../styles/shell.css";
 
 const NAV = [
   { to: "/dashboard", label: "Home", Icon: HomeIcon },
   { to: "/calendar", label: "Calendar", Icon: CalendarIcon },
+  { to: "/budgets", label: "Budgets", Icon: BudgetIcon },
   { to: "/notifications", label: "Alerts", Icon: BellIcon, badge: true },
   { to: "/settings", label: "Settings", Icon: SettingsIcon },
 ];

@@ -1,11 +1,13 @@
 import { useState, useCallback, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Link } from "react-router-dom";
-import { accountApi, calendarApi, plaidApi, subscriptionApi, transactionApi } from "./api";
+import { accountApi, budgetApi, calendarApi, insightsApi, plaidApi, subscriptionApi, transactionApi } from "./api";
 import { useAuth } from "./AuthContext";
 import { useNotifications } from "./NotificationsContext";
 import AccountCard from "./components/AccountCard";
+import BudgetsGlance from "./components/BudgetsGlance";
 import EventDialog from "./components/EventDialog";
+import MonthlyTrend from "./components/MonthlyTrend";
 import QuickActions from "./components/QuickActions";
 import SpendingDonut from "./components/SpendingDonut";
 import SubscriptionSuggestions from "./components/SubscriptionSuggestions";
@@ -26,6 +28,8 @@ export default function DashboardPage() {
   const [loadingTransactions, setLoadingTransactions] = useState(true);
   const [upcoming, setUpcoming] = useState([]);
   const [suggestions, setSuggestions] = useState([]);
+  const [insights, setInsights] = useState(null);
+  const [budgets, setBudgets] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -53,6 +57,12 @@ export default function DashboardPage() {
       .catch(() => {});
     subscriptionApi.suggestions()
       .then((res) => active && setSuggestions(res.data))
+      .catch(() => {});
+    insightsApi.get(6)
+      .then((res) => active && setInsights(res.data))
+      .catch(() => {});
+    budgetApi.overview()
+      .then((res) => active && setBudgets(res.data))
       .catch(() => {});
 
     return () => {
@@ -195,6 +205,16 @@ export default function DashboardPage() {
 
       <div className="home-grid">
         <div className="home-main">
+          {connected && insights?.months.length > 0 && (
+            <section className="card" aria-labelledby="trend-title">
+              <div className="card-header">
+                <h2 id="trend-title">Monthly spending</h2>
+                <span className="muted">Last {insights.months.length} month{insights.months.length === 1 ? "" : "s"}</span>
+              </div>
+              <MonthlyTrend insights={insights} currency={currency} />
+            </section>
+          )}
+
           {connected && (
             <section className="card" aria-labelledby="categories-title">
               <div className="card-header">
@@ -245,6 +265,8 @@ export default function DashboardPage() {
               </ul>
             )}
           </section>
+
+          {connected && budgets && <BudgetsGlance overview={budgets} currency={currency} />}
 
           <SubscriptionSuggestions
             suggestions={suggestions}

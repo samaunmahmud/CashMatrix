@@ -10,6 +10,8 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 - Users can connect a real (sandbox) bank account through Plaid
 - The app pulls the last 90 days of transactions from Plaid and stores them
 - Transactions are deduplicated so syncing multiple times doesn't create duplicates
+- Users can set monthly budgets per category and get warned when one is nearly used or overspent
+- Month-by-month spending totals, and this month compared with the same point last month
 
 ## Tech stack
 
@@ -43,7 +45,12 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | PUT | `/api/calendar/events/{id}` | Yes | Edit an item |
 | POST | `/api/calendar/events/{id}/complete` | Yes | Mark the current occurrence done or paid |
 | DELETE | `/api/calendar/events/{id}` | Yes | Delete an item and its notifications |
-| GET | `/api/notifications` | Yes | Latest 50 notifications (also refreshes the caller's reminders) |
+| GET | `/api/budgets?month=yyyy-MM` | Yes | Every budget with spent, remaining and status for a month (default this month), plus suggested budgets |
+| POST | `/api/budgets` | Yes | Create a budget (`{"category": "Groceries", "monthlyLimit": 250}`) |
+| PUT | `/api/budgets/{id}` | Yes | Change a budget's category or limit |
+| DELETE | `/api/budgets/{id}` | Yes | Delete a budget |
+| GET | `/api/insights?months=6` | Yes | Spending per month (1 to 12 months) and this month against last, overall and by category |
+| GET | `/api/notifications` | Yes | Latest 50 notifications (also refreshes the caller's reminders and budget alerts) |
 | GET | `/api/notifications/unread-count` | Yes | Number of unread notifications, for a badge |
 | POST | `/api/notifications/{id}/read` | Yes | Mark one notification read |
 | POST | `/api/notifications/read-all` | Yes | Mark all notifications read |
@@ -63,6 +70,16 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 ## Subscription detection
 
 The app looks through synced transactions for a merchant that charges a steady amount (within 15%) on a steady weekly or monthly rhythm, and suggests it as a subscription. Weekly needs three charges, monthly needs two. Charges that stopped more than a week past their expected date are treated as cancelled. Only the last 90 days are synced, so yearly subscriptions can't be spotted this way. Merchants are grouped by the first meaningful word of their name, so two different merchants sharing a first word can occasionally be confused.
+
+## Budgets and insights
+
+A budget is a monthly limit for one category. Spending is money out (Plaid's positive amounts), pending included, matched to a budget by the transaction's category (the user's own if set, otherwise the bank's), ignoring case. Each budget reports `ON_TRACK`, `NEAR_LIMIT` (80% or more) or `OVER`.
+
+Budget alerts appear alongside calendar reminders and go out by email and push the same way. There is at most one "nearly used" and one "over" alert per budget per month, and none of the "nearly used" kind once a budget is already over. Budgets are checked by the hourly job, after each sync, when a budget is saved, and when the user opens their alerts.
+
+Suggested budgets are the user's average month in each category they spend in but haven't budgeted for, rounded up to the next 5. The average uses the last three complete months the synced history fully covers. Someone with only part of a month synced gets this month so far instead.
+
+Insights leave out months before the earliest synced transaction instead of showing them as zero. A month the history only partly covers is marked `partial`, and so is the current month. The "same time last month" figure is `null` when the history doesn't reach back to the start of last month.
 
 ## Calendar and reminders
 

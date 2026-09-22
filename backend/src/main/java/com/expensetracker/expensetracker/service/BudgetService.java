@@ -22,6 +22,7 @@ import java.math.RoundingMode;
 import java.time.Clock;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Service
@@ -118,27 +119,42 @@ public class BudgetService {
     }
 
     /**
-     * Categories the user spent in over the last few months that have no budget yet. The
-     * suggested limit is their average month, counting only months the synced history covers.
+     * Categories the user spent in recently that have no budget yet. The suggested limit is
+     * their average over the last few complete months the synced history fully covers; a
+     * month cut short by the start of the history, or still under way, would understate it.
+     * Someone with no complete month yet gets this month so far instead.
      */
     private List<CategorySuggestion> suggestions(User user, List<Budget> budgets, YearMonth thisMonth) {
         LocalDate from = thisMonth.minusMonths(SUGGESTION_MONTHS).atDay(1);
         List<Transaction> recent = transactionsBetween(user, from, thisMonth.atEndOfMonth());
         if (recent.isEmpty()) return List.of();
 
+        LocalDate historyStart = recent.stream().map(Transaction::getTransactionDate).min(LocalDate::compareTo).orElseThrow();
+        YearMonth firstFull = historyStart.getDayOfMonth() == 1 ? YearMonth.from(historyStart) : YearMonth.from(historyStart).plusMonths(1);
+        YearMonth start = firstFull.isAfter(thisMonth.minusMonths(SUGGESTION_MONTHS)) ? firstFull : thisMonth.minusMonths(SUGGESTION_MONTHS);
+
+        List<Transaction> basis;
+        long monthCount;
+        if (start.isBefore(thisMonth)) {
+            basis = recent.stream().filter(tx -> {
+                YearMonth month = YearMonth.from(tx.getTransactionDate());
+                return !month.isBefore(start) && month.isBefore(thisMonth);
+            }).toList();
+            monthCount = start.until(thisMonth, ChronoUnit.MONTHS);
+        } else {
+            basis = recent.stream().filter(tx -> YearMonth.from(tx.getTransactionDate()).equals(thisMonth)).toList();
+            monthCount = 1;
+        }
+
         Set<String> budgeted = new TreeSet<>(String.CASE_INSENSITIVE_ORDER);
         budgets.forEach(budget -> budgeted.add(budget.getCategory()));
+        BigDecimal months = BigDecimal.valueOf(monthCount);
 
-        // Months with any transaction at all; a quiet category in a covered month still counts as a zero.
-        Set<YearMonth> coveredMonths = new HashSet<>();
-        recent.forEach(tx -> coveredMonths.add(YearMonth.from(tx.getTransactionDate())));
-        BigDecimal monthsSeen = BigDecimal.valueOf(coveredMonths.size());
-
-        return Spending.byCategory(recent).entrySet().stream()
+        return Spending.byCategory(basis).entrySet().stream()
                 .filter(entry -> !budgeted.contains(entry.getKey()))
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
                 .limit(MAX_SUGGESTIONS)
-                .map(entry -> new CategorySuggestion(entry.getKey(), roundUp(entry.getValue().divide(monthsSeen, 2, RoundingMode.HALF_UP))))
+                .map(entry -> new CategorySuggestion(entry.getKey(), roundUp(entry.getValue().divide(months, 2, RoundingMode.HALF_UP))))
                 .toList();
     }
 

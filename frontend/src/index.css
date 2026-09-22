@@ -264,3 +264,20 @@ textarea.input { padding: 10px 14px; min-height: 84px; resize: vertical; }
   transition: transform 0.15s;
 }
 .switch-on .switch-knob { transform: translateX(22px); }
+
+/* Budget meter: the fill carries the state, the track is a lighter step of the same colour,
+   and a word beside it says the state too. */
+.meter { --meter-fill: var(--brand); --meter-track: var(--brand-soft); --meter-text: var(--brand-strong); }
+.meter-near { --meter-fill: #c77c0e; --meter-track: var(--warn-soft); --meter-text: var(--warn); }
+.meter-over { --meter-fill: var(--danger); --meter-track: var(--danger-soft); --meter-text: var(--danger); }
+.meter-top, .meter-bottom { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.meter-name { min-width: 0; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.meter-figures { flex: none; font-size: 0.875rem; font-variant-numeric: tabular-nums; }
+.meter-track { height: 10px; margin: 8px 0 6px; overflow: hidden; border-radius: 999px; background: var(--meter-track); }
+.meter-fill { display: block; height: 100%; border-radius: 999px; background: var(--meter-fill); transition: width 0.3s; }
+.meter-bottom { font-size: 0.8125rem; }
+.meter-status { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; color: var(--meter-text); }
+.meter-status::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--meter-fill); }
+.meter-left { color: var(--muted); font-variant-numeric: tabular-nums; }
+.meter-left-over { color: var(--danger); font-weight: 600; }
+.meter-compact .meter-top, .meter-compact .meter-left { display: none; }
