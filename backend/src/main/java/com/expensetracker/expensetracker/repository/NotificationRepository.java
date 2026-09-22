@@ -22,9 +22,11 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 
     boolean existsByEventAndDueDate(CalendarEvent event, LocalDate dueDate);
 
-    // Recent reminders that haven't gone out on every channel yet. The user and event are fetched
+    boolean existsByAlertKey(String alertKey);
+
+    // Recent alerts that haven't gone out on every channel yet. The user and event are fetched
     // up front because delivery runs in the background, with no web request to lazy-load them.
-    @Query("select n from Notification n join fetch n.user join fetch n.event "
+    @Query("select n from Notification n join fetch n.user left join fetch n.event "
             + "where n.createdAt > :since and (n.emailSent = false or n.pushSent = false)")
     List<Notification> findUndelivered(Instant since);
 

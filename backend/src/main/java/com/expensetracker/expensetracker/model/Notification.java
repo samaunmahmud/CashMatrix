@@ -9,10 +9,12 @@ import java.time.Instant;
 import java.time.LocalDate;
 
 /**
- * An in-app reminder for an upcoming (or just missed) calendar item.
+ * An in-app alert: a reminder for an upcoming (or just missed) calendar item, or a
+ * warning that a budget is nearly used up or overspent.
  *
  * The unique constraint on (event, due date) is what guarantees a user is
  * reminded only once per occurrence, however many times the reminder job runs.
+ * Alerts that aren't about a calendar item have no event and use alertKey instead.
  */
 @Entity
 @Table(
@@ -32,9 +34,19 @@ public class Notification {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    // Empty for alerts that aren't about a calendar item, such as budget alerts.
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "event_id", nullable = false)
+    @JoinColumn(name = "event_id")
     private CalendarEvent event;
+
+    // Identifies an alert that isn't tied to a calendar item, so it is only ever raised once
+    // (for example "budget-12-2026-09-over").
+    @Column(name = "alert_key", unique = true, length = 100)
+    private String alertKey;
+
+    // Where the app takes the user when they open the alert. Empty means the calendar on the due date.
+    @Column(length = 200)
+    private String link;
 
     // The occurrence this reminder is about, not the day it was created.
     @Column(name = "due_date", nullable = false)
@@ -60,4 +72,9 @@ public class Notification {
 
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
+
+    /** The app path to open for this alert. */
+    public String openPath() {
+        return link != null ? link : "/calendar?date=" + dueDate;
+    }
 }

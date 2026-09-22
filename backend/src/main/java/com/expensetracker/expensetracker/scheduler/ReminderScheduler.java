@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.scheduler;
 
+import com.expensetracker.expensetracker.service.BudgetAlertService;
 import com.expensetracker.expensetracker.service.ReminderService;
 import com.expensetracker.expensetracker.service.delivery.ReminderDeliveryService;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +12,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 /**
- * Runs the reminder job hourly and once at startup. Running often is safe because
- * a reminder is only ever created once per occurrence, and it means a host that
+ * Runs the reminder job (calendar reminders and budget alerts) hourly and once at startup.
+ * Running often is safe because each alert is only ever created once, and it means a host that
  * sleeps overnight still catches up as soon as it wakes.
  *
  * Settings (all optional):
@@ -27,6 +28,7 @@ import org.springframework.stereotype.Component;
 public class ReminderScheduler {
 
     private final ReminderService reminderService;
+    private final BudgetAlertService budgetAlertService;
     private final ReminderDeliveryService deliveryService;
 
     @Scheduled(cron = "${app.reminders.cron:0 0 * * * *}", zone = "${app.reminders.zone:Europe/London}")
@@ -43,9 +45,10 @@ public class ReminderScheduler {
         try {
             int rolled = reminderService.rollSubscriptionsForward();
             int created = reminderService.generateReminders();
+            int budgetAlerts = budgetAlertService.checkAll();
             int delivered = deliveryService.deliverPending();
-            log.info("Reminder job finished: {} subscription(s) rolled forward, {} reminder(s) created, {} sent by email or push",
-                    rolled, created, delivered);
+            log.info("Reminder job finished: {} subscription(s) rolled forward, {} reminder(s) and {} budget alert(s) created, "
+                    + "{} sent by email or push", rolled, created, budgetAlerts, delivered);
         } catch (RuntimeException ex) {
             // Never let a failed run kill the scheduler thread; the next run tries again.
             log.error("Reminder job failed", ex);

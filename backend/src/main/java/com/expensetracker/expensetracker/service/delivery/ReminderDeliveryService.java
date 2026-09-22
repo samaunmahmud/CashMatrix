@@ -83,8 +83,7 @@ public class ReminderDeliveryService {
         List<PushSubscription> devices = pushRepository.findByUser(user);
         if (devices.isEmpty()) return 0;
 
-        String payload = pushPayload(notification.getTitle(), notification.getMessage(),
-                "/calendar?date=" + notification.getDueDate());
+        String payload = pushPayload(notification.getTitle(), notification.getMessage(), notification.openPath());
         int delivered = 0;
         for (PushSubscription device : devices) {
             switch (pushGateway.send(device, payload)) {
@@ -109,7 +108,7 @@ public class ReminderDeliveryService {
     }
 
     public String emailBody(Notification notification, User user) {
-        return emailBody(user, notification.getMessage(), "/calendar?date=" + notification.getDueDate());
+        return emailBody(user, notification.getMessage(), notification.openPath());
     }
 
     public String emailBody(User user, String message, String path) {

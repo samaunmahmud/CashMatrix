@@ -11,12 +11,13 @@ public record NotificationResponse(
         String title,
         String message,
         LocalDate dueDate,
+        String link,
         boolean read,
         Instant createdAt
 ) {
     public static NotificationResponse from(Notification n) {
         return new NotificationResponse(
-                n.getId(), n.getEvent().getId(), n.getTitle(), n.getMessage(),
-                n.getDueDate(), n.isRead(), n.getCreatedAt());
+                n.getId(), n.getEvent() != null ? n.getEvent().getId() : null, n.getTitle(), n.getMessage(),
+                n.getDueDate(), n.openPath(), n.isRead(), n.getCreatedAt());
     }
 }

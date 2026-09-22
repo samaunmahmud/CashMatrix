@@ -2,6 +2,7 @@ package com.expensetracker.expensetracker.controller;
 
 import com.expensetracker.expensetracker.dto.NotificationResponse;
 import com.expensetracker.expensetracker.security.UserPrincipal;
+import com.expensetracker.expensetracker.service.BudgetAlertService;
 import com.expensetracker.expensetracker.service.NotificationService;
 import com.expensetracker.expensetracker.service.ReminderService;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ public class NotificationController {
 
     private final NotificationService notificationService;
     private final ReminderService reminderService;
+    private final BudgetAlertService budgetAlertService;
 
     @GetMapping
     public List<NotificationResponse> list(@AuthenticationPrincipal UserPrincipal principal) {
@@ -46,8 +48,8 @@ public class NotificationController {
     }
 
     /**
-     * The scheduled job is the main source of reminders, but a free-tier host can be
-     * asleep when it should have fired. Checking the caller's own items here means
+     * The scheduled job is the main source of reminders and budget alerts, but a free-tier host
+     * can be asleep when it should have fired. Checking the caller's own items here means
      * they are up to date whenever the user actually looks. It is best-effort: a
      * failure must not stop the user reading the notifications they already have.
      */
@@ -56,6 +58,11 @@ public class NotificationController {
             reminderService.generateReminders(principal.getUser());
         } catch (RuntimeException ex) {
             log.warn("Could not refresh reminders for user {}", principal.getUser().getId(), ex);
+        }
+        try {
+            budgetAlertService.check(principal.getUser());
+        } catch (RuntimeException ex) {
+            log.warn("Could not check budgets for user {}", principal.getUser().getId(), ex);
         }
     }
 }
