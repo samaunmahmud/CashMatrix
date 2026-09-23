@@ -135,6 +135,21 @@ class AccountsAndSyncTest {
     }
 
     @Test
+    void aNewLoginGetsTwoYearsOfHistoryAndLaterSyncsTheLast90Days() {
+        String token = current.getPlaidAccessToken();
+        when(plaidService.getTransactions(eq(token), anyString(), anyString(), eq(0))).thenReturn(Map.of(
+                "total_transactions", 0, "transactions", List.of()));
+        when(plaidService.getAccounts(token)).thenReturn(Map.of("accounts", List.of()));
+
+        transactionService.syncTransactions(user);
+        transactionService.syncTransactions(user);
+
+        String today = LocalDate.now().toString();
+        verify(plaidService, times(1)).getTransactions(token, LocalDate.now().minusDays(730).toString(), today, 0);
+        verify(plaidService, times(1)).getTransactions(token, LocalDate.now().minusDays(90).toString(), today, 0);
+    }
+
+    @Test
     void aFailedBalanceRefreshDoesNotLoseTheSyncedTransactions() {
         String token = current.getPlaidAccessToken();
         when(plaidService.getTransactions(eq(token), anyString(), anyString(), eq(0))).thenReturn(Map.of(

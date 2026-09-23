@@ -25,6 +25,8 @@ public class PlaidService {
                 "client_name", "CashMatrix",
                 "user", Map.of("client_user_id", userId),
                 "products", List.of("transactions"),
+                // Two years rather than Plaid's default 90 days, so yearly subscriptions show up.
+                "transactions", Map.of("days_requested", TransactionService.FULL_HISTORY_DAYS),
                 "country_codes", plaidConfig.getCountryCodes(),
                 "language", "en"
         );

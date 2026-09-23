@@ -49,6 +49,10 @@ export const updatedLabel = (isoInstant) => {
 export const shortDate = (iso) =>
   new Intl.DateTimeFormat("en-GB", { weekday: "short", day: "numeric", month: "short" }).format(parseISO(iso));
 
+/** "3 Sept 2025". */
+export const mediumDate = (iso) =>
+  new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short", year: "numeric" }).format(parseISO(iso));
+
 // Months travel as "yyyy-MM" strings, matching the API.
 export const monthISO = (date = new Date()) => `${date.getFullYear()}-${pad(date.getMonth() + 1)}`;
 

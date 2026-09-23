@@ -4,6 +4,7 @@ import { accountApi, transactionApi } from "./api";
 import { AccountSummary } from "./components/AccountCard";
 import { ChevronLeftIcon, SearchIcon } from "./components/Icons";
 import { TransactionRows } from "./components/TransactionList";
+import { mediumDate } from "./dates";
 import { formatMoney } from "./format";
 import "./styles/account.css";
 
@@ -57,6 +58,7 @@ export default function AccountPage() {
   const totalOut = shown.reduce((sum, tx) => (tx.amount > 0 ? sum + tx.amount : sum), 0);
   const totalIn = shown.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
   const currency = account?.currency;
+  const earliest = transactions?.length ? transactions[transactions.length - 1].transactionDate : null;
 
   return (
     <div className="account-page">
@@ -80,7 +82,7 @@ export default function AccountPage() {
           <section className="card" aria-labelledby="statement-title">
             <div className="card-header">
               <h2 id="statement-title">Transactions</h2>
-              <span className="muted">Last 90 days</span>
+              {earliest && <span className="muted">Since {mediumDate(earliest)}</span>}
             </div>
 
             <div className="statement-tools">

@@ -19,6 +19,8 @@ public final class MerchantNames {
             "the", "card", "payment", "purchase", "pos", "dd", "direct", "debit", "www", "http", "https",
             "com", "uk", "ltd", "limited", "plc", "inc", "llc", "gbp", "visa", "recurring", "subscription",
             "monthly", "standing", "order", "faster", "payments", "bill", "online", "web");
+    private static final Set<String> BRANCH_WORDS = Set.of(
+            "store", "stores", "superstore", "express", "extra", "metro", "local", "petrol", "branch");
 
     private MerchantNames() {
     }
@@ -51,5 +53,19 @@ public final class MerchantNames {
         }
         String name = String.join(" ", words).trim();
         return name.isEmpty() ? raw.trim() : name;
+    }
+
+    /**
+     * The shop behind a name, for adding up spending by retailer: the {@link #display} name without the
+     * words banks add for the kind of branch ("Tesco Express", "Sainsbury's Local" and "TESCO STORES 2041"
+     * are all "Tesco" or "Sainsbury's"). Branch locations ("Dishoom Kings Cross") can't be told apart from
+     * a name on their own, so the app merges those when it sees the shorter name too.
+     */
+    public static String retailer(String raw) {
+        List<String> words = new ArrayList<>(Arrays.asList(display(raw).split("\\s+")));
+        while (words.size() > 1 && BRANCH_WORDS.contains(words.get(words.size() - 1).toLowerCase(Locale.ROOT))) {
+            words.remove(words.size() - 1);
+        }
+        return String.join(" ", words);
     }
 }

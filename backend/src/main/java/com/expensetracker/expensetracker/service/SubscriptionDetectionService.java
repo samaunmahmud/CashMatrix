@@ -24,10 +24,11 @@ import java.util.stream.Collectors;
 
 /**
  * Spots subscriptions in a user's transactions: the same merchant charging about the
- * same amount on a steady weekly or monthly rhythm.
+ * same amount on a steady weekly, monthly or yearly rhythm.
  *
- * It can only see what has been synced (90 days), so it recognises weekly and monthly
- * charges but not yearly ones. Merchants are grouped by {@link MerchantNames#key}.
+ * Weekly and monthly charges are judged on the last few months, so an old price or a
+ * cancel-and-rejoin doesn't hide a current subscription. Yearly ones need the up to two years
+ * a first import brings in. Merchants are grouped by {@link MerchantNames#key}.
  */
 @Service
 @RequiredArgsConstructor
@@ -37,6 +38,9 @@ public class SubscriptionDetectionService {
     static final int DEFAULT_REMIND_DAYS = 2;
     // Subscriptions creep up by pennies or a price rise; a wilder spread is a shop, not a subscription.
     static final BigDecimal MAX_AMOUNT_SPREAD = new BigDecimal("1.15");
+    // Yearly renewals often go up by more (Prime went from £79 to £95).
+    static final BigDecimal MAX_YEARLY_AMOUNT_SPREAD = new BigDecimal("1.25");
+    static final int RECENT_MONTHS = 6;
 
     private static final Pattern KEY_FORMAT = Pattern.compile("[a-z]{3,40}");
 
@@ -112,9 +116,17 @@ public class SubscriptionDetectionService {
     // ---- analysis ------------------------------------------------------------
 
     private Optional<SubscriptionSuggestion> analyse(String key, List<Transaction> transactions, LocalDate today) {
-        List<Transaction> sorted = transactions.stream()
+        List<Transaction> all = transactions.stream()
                 .sorted(Comparator.comparing(Transaction::getTransactionDate))
                 .toList();
+        LocalDate recentFrom = today.minusMonths(RECENT_MONTHS);
+        List<Transaction> recent = all.stream()
+                .filter(tx -> !tx.getTransactionDate().isBefore(recentFrom))
+                .toList();
+        return analyse(key, recent, today, false).or(() -> analyse(key, all, today, true));
+    }
+
+    private Optional<SubscriptionSuggestion> analyse(String key, List<Transaction> sorted, LocalDate today, boolean yearly) {
         if (sorted.size() < 2) {
             return Optional.empty();
         }
@@ -129,7 +141,16 @@ public class SubscriptionDetectionService {
         Recurrence recurrence;
         int tolerance;
         int minimumCharges;
-        if (median >= 6 && median <= 8) {
+        BigDecimal maxSpread = MAX_AMOUNT_SPREAD;
+        if (yearly) {
+            if (median < 355 || median > 375) {
+                return Optional.empty();
+            }
+            recurrence = Recurrence.YEARLY;
+            tolerance = 10;
+            minimumCharges = 2;
+            maxSpread = MAX_YEARLY_AMOUNT_SPREAD;
+        } else if (median >= 6 && median <= 8) {
             recurrence = Recurrence.WEEKLY;
             tolerance = 2;
             minimumCharges = 3;   // two weekly charges prove very little
@@ -153,7 +174,7 @@ public class SubscriptionDetectionService {
         List<BigDecimal> amounts = sorted.stream().map(Transaction::getAmount).sorted().toList();
         BigDecimal cheapest = amounts.get(0);
         BigDecimal dearest = amounts.get(amounts.size() - 1);
-        if (dearest.compareTo(cheapest.multiply(MAX_AMOUNT_SPREAD)) > 0) {
+        if (dearest.compareTo(cheapest.multiply(maxSpread)) > 0) {
             return Optional.empty();
         }
         BigDecimal typical = amounts.get(amounts.size() / 2).setScale(2, RoundingMode.HALF_UP);

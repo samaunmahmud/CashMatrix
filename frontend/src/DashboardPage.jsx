@@ -14,6 +14,7 @@ import SubscriptionSuggestions from "./components/SubscriptionSuggestions";
 import TransactionList from "./components/TransactionList";
 import { addDays, shortDate, todayISO, updatedLabel } from "./dates";
 import { formatMoney } from "./format";
+import { retailerGroups } from "./retailers";
 import "./styles/dashboard.css";
 
 const greeting = () => {
@@ -118,9 +119,16 @@ export default function DashboardPage() {
   const currency = accounts?.find((a) => a.currency)?.currency;
 
   // Plaid reports money leaving the account as a positive amount and money arriving as negative.
+  // History can reach back two years (for yearly subscriptions); the summaries cover the last 90 days.
+  const since = addDays(todayISO(), -90);
+  const recent = transactions.filter((tx) => tx.transactionDate >= since);
+  const retailerOf = (tx) => tx.retailer || tx.merchant || tx.name;
+  const retailers = retailerGroups(recent.filter((tx) => tx.amount > 0).map(retailerOf));
   const groupOf = (tx) =>
-    spendingBy === "retailer" ? tx.merchant || tx.name : tx.userCategory || tx.plaidCategory || "Uncategorised";
-  const categoryTotals = transactions.reduce((acc, tx) => {
+    spendingBy === "retailer"
+      ? retailers.get(retailerOf(tx)) ?? retailerOf(tx)
+      : tx.userCategory || tx.plaidCategory || "Uncategorised";
+  const categoryTotals = recent.reduce((acc, tx) => {
     if (tx.amount <= 0) return acc;
     const group = groupOf(tx);
     acc[group] = (acc[group] || 0) + tx.amount;
@@ -128,7 +136,7 @@ export default function DashboardPage() {
   }, {});
   const categories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
   const totalSpent = categories.reduce((sum, [, amount]) => sum + amount, 0);
-  const moneyIn = transactions.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
+  const moneyIn = recent.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
 
   // A total across accounts only makes sense when they are all in one currency.
   const cash = (accounts ?? []).filter((a) => a.type === "depository" && a.currentBalance != null);

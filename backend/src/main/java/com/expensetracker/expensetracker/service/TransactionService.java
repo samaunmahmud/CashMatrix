@@ -25,7 +25,10 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class TransactionService {
 
-    static final int HISTORY_DAYS = 90;
+    /** How far back an account's first import reaches (Plaid's maximum). */
+    public static final int FULL_HISTORY_DAYS = 730;
+    /** How far back later syncs look: far enough to pick up anything that was pending or posted late. */
+    static final int RECENT_DAYS = 90;
 
     private final TransactionRepository transactionRepository;
     private final BankAccountRepository bankAccountRepository;
@@ -40,16 +43,17 @@ public class TransactionService {
     }
 
     /**
-     * Pulls the last 90 days from Plaid, saving what is new, refreshes account balances, and raises
+     * Pulls transactions from Plaid, saving what is new, refreshes account balances, and raises
      * money in / money out alerts for new transactions (except on an account's first import).
+     * A login with a newly connected account gets up to two years of history, the rest the last 90 days.
      */
     @SuppressWarnings("unchecked")
     public int syncTransactions(User user, boolean userIsPresent) {
         List<BankAccount> accounts = bankAccountRepository.findByUser(user);
         if (accounts.isEmpty()) return 0;
 
-        String endDate = LocalDate.now(clock).toString();
-        String startDate = LocalDate.now(clock).minusDays(HISTORY_DAYS).toString();
+        LocalDate today = LocalDate.now(clock);
+        String endDate = today.toString();
 
         Map<String, BankAccount> byPlaidId = accounts.stream()
                 .collect(Collectors.toMap(BankAccount::getPlaidAccountId, Function.identity(), (a, b) -> a));
@@ -63,6 +67,9 @@ public class TransactionService {
         List<Transaction> alertable = new ArrayList<>();
 
         for (String accessToken : accessTokens) {
+            boolean firstImport = accounts.stream()
+                    .anyMatch(a -> a.getPlaidAccessToken().equals(accessToken) && a.getTransactionsSyncedAt() == null);
+            String startDate = today.minusDays(firstImport ? FULL_HISTORY_DAYS : RECENT_DAYS).toString();
             int offset = 0;
             int total;
             do {

@@ -161,7 +161,57 @@ class SubscriptionDetectionTest {
         assertThat(detection.detect(u)).isEmpty();
     }
 
+    @Test
+    void findsYearlyChargesInTwoYearsOfHistory() {
+        User u = newUser();
+        BankAccount a = newAccount(u);
+        chargeTo(a, "AMAZON PRIME", "79.00", "2024-10-01");
+        chargeTo(a, "AMAZON PRIME", "95.00", "2025-10-01");             // 20% rise, still the same renewal
+        chargeTo(a, "Old Insurer", "300.00", "2024-09-01", "2025-09-01"); // due 1 Sep this year, never came
+        chargeTo(a, "Dentist", "60.00", "2025-03-14", "2025-09-02");     // twice, but not a year apart
+
+        List<SubscriptionSuggestion> found = detection.detect(u);
+
+        assertThat(found).extracting(SubscriptionSuggestion::key).containsExactly("amazon");
+        SubscriptionSuggestion prime = found.get(0);
+        assertThat(prime.recurrence()).isEqualTo(Recurrence.YEARLY);
+        assertThat(prime.nextExpected()).isEqualTo(LocalDate.of(2026, 10, 1));
+        assertThat(prime.confidence()).isEqualTo("MEDIUM");
+    }
+
+    @Test
+    void monthlyChargesAreJudgedOnRecentMonthsSoAnOldPriceDoesNotHideThem() {
+        User u = newUser();
+        BankAccount a = newAccount(u);
+        chargeTo(a, "Disney Plus", "4.99", "2025-12-10", "2026-01-10", "2026-02-10");
+        chargeTo(a, "Disney Plus", "7.99", "2026-04-10", "2026-05-10", "2026-06-10", "2026-07-10", "2026-08-10", "2026-09-10");
+
+        List<SubscriptionSuggestion> found = detection.detect(u);
+
+        assertThat(found).singleElement().satisfies(disney -> {
+            assertThat(disney.recurrence()).isEqualTo(Recurrence.MONTHLY);
+            assertThat(disney.amount()).isEqualByComparingTo("7.99");
+            assertThat(disney.occurrences()).isEqualTo(6);
+        });
+    }
+
     // --- helpers -------------------------------------------------------------
+
+    private BankAccount newAccount(User owner) {
+        BankAccount a = new BankAccount();
+        a.setUser(owner);
+        a.setPlaidAccessToken("t-" + UUID.randomUUID());
+        a.setPlaidItemId("i-" + UUID.randomUUID());
+        a.setPlaidAccountId("a-" + UUID.randomUUID());
+        a.setName("Current");
+        return bankAccountRepository.save(a);
+    }
+
+    private void chargeTo(BankAccount a, String name, String amount, String... dates) {
+        for (String date : dates) {
+            transactionRepository.save(tx(a, name, amount, date));
+        }
+    }
 
     private SubscriptionSuggestion find(String key) {
         return detection.detect(user).stream().filter(s -> s.key().equals(key)).findFirst().orElseThrow();
