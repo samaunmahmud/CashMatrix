@@ -105,21 +105,24 @@ export default function MonthlyTrend({ insights, currency }) {
         ))}
       </div>
 
-      <table className="sr-only">
-        <caption>Spending by month</caption>
-        <thead>
-          <tr><th scope="col">Month</th><th scope="col">Spent</th><th scope="col">Money in</th></tr>
-        </thead>
-        <tbody>
-          {months.map((m) => (
-            <tr key={m.month}>
-              <th scope="row">{monthLabel(m.month)}{m.partial ? " (part month)" : ""}</th>
-              <td>{formatMoney(m.spent, currency)}</td>
-              <td>{formatMoney(m.moneyIn, currency)}</td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {/* A table can't be shrunk out of sight like other elements, so it sits in a hidden box. */}
+      <div className="sr-only">
+        <table>
+          <caption>Spending by month</caption>
+          <thead>
+            <tr><th scope="col">Month</th><th scope="col">Spent</th><th scope="col">Money in</th></tr>
+          </thead>
+          <tbody>
+            {months.map((m) => (
+              <tr key={m.month}>
+                <th scope="row">{monthLabel(m.month)}{m.partial ? " (part month)" : ""}</th>
+                <td>{formatMoney(m.spent, currency)}</td>
+                <td>{formatMoney(m.moneyIn, currency)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
       {(pace || changes.length > 0) && (
         <div className="trend-notes">
