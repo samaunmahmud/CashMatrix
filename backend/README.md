@@ -180,6 +180,10 @@ You'll need Java 17+, Maven, and PostgreSQL installed.
 
 The app starts on `http://localhost:8080` and auto-creates the database tables on first run.
 
+## Cloud-synced folders
+
+If the project lives in a folder that iCloud or a similar service syncs, the build output in `target/` can pick up duplicate files named like `Something 2.class`, which confuse `spring-boot:run`. They are never in the code and can be deleted. Keeping the project outside a synced folder avoids the problem.
+
 ## Deployment
 
 Deployed on **Render** using Docker, with PostgreSQL on Render too. Environment variables are used for all secrets — nothing sensitive is in the codebase. `render.yaml` at the top of the repo describes the service and database; see `DEPLOYING.md` there for the steps.

@@ -4,7 +4,7 @@ This is the frontend for CashMatrix, my expense tracker app. It's a React app th
 
 ## What it does
 
-- **Home**: a green summary of your total balance, a card for each linked account (available balance, or amount owed on a credit card), quick actions, monthly spending (column chart, with this month against the same point last month and the biggest category changes), where your money went (donut chart), recent transactions, the next payments due and the budgets that most need attention
+- **Home**: a green summary of your money after card balances (what's in your accounts less what you owe on credit cards), a card for each linked account (available balance, or amount owed on a credit card), quick actions, monthly spending (column chart, with this month against the same point last month and the biggest category changes), where your money went (donut chart), recent transactions, the next payments due and the budgets that most need attention
 - **Account pages**: tap an account for its balance and a statement grouped by day ("Today", "Yesterday"…), with search, money in / money out filters and pending labels
 - **Spending by category or retailer** on the home screen
 - **Log in with fingerprint or face** using passkeys, added from Settings
