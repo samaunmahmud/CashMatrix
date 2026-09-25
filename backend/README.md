@@ -8,7 +8,7 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 - Passwords are hashed with BCrypt (never stored as plain text)
 - Every protected request requires a JWT token in the Authorization header
 - Users can connect a real (sandbox) bank account through Plaid
-- The app pulls the last 90 days of transactions from Plaid and stores them
+- A newly linked bank brings in up to two years of transactions, later syncs the last 90 days
 - Transactions are deduplicated so syncing multiple times doesn't create duplicates
 - Users can set monthly budgets per category and get warned when one is nearly used or overspent
 - Month-by-month spending totals, and this month compared with the same point last month
@@ -72,12 +72,12 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 
 - Banks in the UK are linked by default. Set `plaid.country-codes` (env `PLAID_COUNTRY_CODES`) to `GB`, `US` or `GB,US`. Plaid must have the country enabled for your account.
 - `plaid.base-url` (env `PLAID_BASE_URL`) sends Plaid calls somewhere else, such as a local stand-in server while developing.
-- Each sync pages through everything Plaid holds for the last 90 days (not just the first 100) and refreshes account balances.
+- The first sync of a newly linked bank asks Plaid for up to two years of history; later syncs cover the last 90 days. Each sync pages through everything in that range (not just the first 100) and refreshes account balances. Banks linked before this change keep only 90 days until they are linked again.
 - A missing, expired or invalid login token gets a `401` with `{"error":"Please log in again"}`. A stale token is ignored on the login and signup calls, so it can never lock someone out.
 
 ## Subscription detection
 
-The app looks through synced transactions for a merchant that charges a steady amount (within 15%) on a steady weekly or monthly rhythm, and suggests it as a subscription. Weekly needs three charges, monthly needs two. Charges that stopped more than a week past their expected date are treated as cancelled. Only the last 90 days are synced, so yearly subscriptions can't be spotted this way. Merchants are grouped by the first meaningful word of their name, so two different merchants sharing a first word can occasionally be confused.
+The app looks through synced transactions for a merchant that charges a steady amount on a steady weekly, monthly or yearly rhythm, and suggests it as a subscription. Weekly needs three charges and monthly two, judged on the last 6 months with amounts within 15%, so an old price doesn't hide a current subscription. Yearly needs two charges about a year apart, within 25% (renewal prices rise), which the two-year first import makes possible. Charges that stopped more than a week past their expected date are treated as cancelled. Merchants are grouped by the first meaningful word of their name, so two different merchants sharing a first word can occasionally be confused.
 
 ## Budgets and insights
 
@@ -182,9 +182,11 @@ The app starts on `http://localhost:8080` and auto-creates the database tables o
 
 ## Deployment
 
-Deployed on **Render** using Docker. The backend and PostgreSQL database both run on Render's free tier. Environment variables are used for all secrets — nothing sensitive is in the codebase.
+Deployed on **Render** using Docker, with PostgreSQL on Render too. Environment variables are used for all secrets — nothing sensitive is in the codebase. `render.yaml` at the top of the repo describes the service and database; see `DEPLOYING.md` there for the steps.
 
-Live API: `https://expense-tracker-backend-2lgp.onrender.com`
+The API only answers browsers on the frontend's address (`APP_PUBLIC_URL`) and local development. Add more, such as a preview deploy, with `app.cors.extra-origins` (env `APP_CORS_EXTRA_ORIGINS`, comma separated).
+
+Live API (from the earlier repo): `https://expense-tracker-backend-2lgp.onrender.com`
 
 > Note: the free tier spins down after inactivity, so the first request after a period of no use may take 30-60 seconds to respond.
 

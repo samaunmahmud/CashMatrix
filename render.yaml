@@ -1,0 +1,39 @@
+# Render Blueprint: the API and its PostgreSQL database.
+# Render asks for the values marked sync: false when the Blueprint is first applied.
+databases:
+  - name: cashmatrix-db
+    databaseName: expense_tracker
+    plan: free
+    region: frankfurt
+
+services:
+  - type: web
+    name: cashmatrix-api
+    runtime: docker
+    rootDir: backend
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt
+    envVars:
+      - key: DB_HOST
+        fromDatabase: { name: cashmatrix-db, property: host }
+      - key: DB_PORT
+        fromDatabase: { name: cashmatrix-db, property: port }
+      - key: DB_NAME
+        fromDatabase: { name: cashmatrix-db, property: database }
+      - key: DB_USERNAME
+        fromDatabase: { name: cashmatrix-db, property: user }
+      - key: DB_PASSWORD
+        fromDatabase: { name: cashmatrix-db, property: password }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: PLAID_CLIENT_ID
+        sync: false
+      - key: PLAID_SECRET
+        sync: false
+      - key: PLAID_COUNTRY_CODES
+        value: GB
+      # The Vercel address of the frontend, e.g. https://cashmatrix.vercel.app
+      - key: APP_PUBLIC_URL
+        sync: false
