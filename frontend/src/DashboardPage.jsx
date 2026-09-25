@@ -138,12 +138,16 @@ export default function DashboardPage() {
   const totalSpent = categories.reduce((sum, [, amount]) => sum + amount, 0);
   const moneyIn = recent.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
 
-  // A total across accounts only makes sense when they are all in one currency.
-  const cash = (accounts ?? []).filter((a) => a.type === "depository" && a.currentBalance != null);
-  const totalBalance =
-    cash.length > 0 && new Set(cash.map((a) => a.currency)).size === 1
-      ? cash.reduce((sum, a) => sum + a.currentBalance, 0)
-      : null;
+  // What you have after paying off your cards. A total across accounts only makes sense
+  // when they are all in one currency.
+  const withBalance = (type) => (accounts ?? []).filter((a) => a.type === type && a.currentBalance != null);
+  const cash = withBalance("depository");
+  const cards = withBalance("credit");
+  const sum = (list) => list.reduce((total, a) => total + a.currentBalance, 0);
+  const oneCurrency = new Set([...cash, ...cards].map((a) => a.currency)).size === 1;
+  const cashTotal = sum(cash);
+  const owedOnCards = sum(cards);
+  const totalBalance = cash.length + cards.length > 0 && oneCurrency ? cashTotal - owedOnCards : null;
   const lastUpdated = (accounts ?? [])
     .map((a) => a.balanceUpdatedAt)
     .filter(Boolean)
@@ -158,8 +162,14 @@ export default function DashboardPage() {
         <p className="hero-hello">{greeting()}{firstName ? `, ${firstName}` : ""}</p>
         {totalBalance != null ? (
           <>
-            <p className="hero-label">Total in your accounts</p>
+            <p className="hero-label">{cards.length > 0 ? "Your money after card balances" : "Total in your accounts"}</p>
             <p className="hero-amount">{formatMoney(totalBalance, currency)}</p>
+            {cards.length > 0 && (
+              <p className="hero-breakdown">
+                {formatMoney(cashTotal, currency)} in accounts, less {formatMoney(owedOnCards, currency)} owed on{" "}
+                {cards.length === 1 ? "your card" : "your cards"}
+              </p>
+            )}
             {transactions.length > 0 && (
               <p className="hero-stats">
                 <span>Spent <strong>{formatMoney(totalSpent, currency)}</strong></span>

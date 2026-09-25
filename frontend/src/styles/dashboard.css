@@ -11,6 +11,7 @@
 .hero-hello { font-size: 1.05rem; font-weight: 600; opacity: 0.95; margin-bottom: 18px; }
 .hero-label { font-size: 0.875rem; opacity: 0.85; }
 .hero-amount { font-size: 2.75rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.15; }
+.hero-breakdown { font-size: 0.875rem; opacity: 0.8; }
 .hero-stats { display: flex; flex-wrap: wrap; gap: 6px 22px; margin-top: 10px; font-size: 0.875rem; opacity: 0.95; }
 .hero-in { color: var(--brand-on-dark, #b8f0d6); }
 .hero-period { opacity: 0.75; }

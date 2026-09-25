@@ -195,6 +195,39 @@ class SubscriptionDetectionTest {
         });
     }
 
+    @Test
+    void findsASubscriptionAmongEverydayShoppingFromTheSameCompany() throws Exception {
+        User u = newUser();
+        BankAccount a = newAccount(u);
+        chargeTo(a, "Amazon Prime", "95.00", "2025-09-09", "2026-09-09");
+        chargeTo(a, "Amazon.co.uk", "23.49", "2026-07-02");
+        chargeTo(a, "Amazon.co.uk", "61.00", "2026-08-19");
+        chargeTo(a, "AMAZON.CO.UK MKTPLACE", "8.99", "2026-09-11");
+        chargeTo(a, "Apple.com/bill iCloud", "2.99", "2026-07-21", "2026-08-21");
+        chargeTo(a, "Apple.com/bill Music", "10.99", "2026-07-04", "2026-08-04", "2026-09-04");
+
+        List<SubscriptionSuggestion> found = detection.detect(u);
+
+        assertThat(found).extracting(SubscriptionSuggestion::key)
+                .containsExactlyInAnyOrder("amazonprime", "appleicloud", "applemusic");
+        assertThat(found).filteredOn(s -> s.key().equals("amazonprime")).singleElement().satisfies(prime -> {
+            assertThat(prime.name()).isEqualTo("Amazon Prime");
+            assertThat(prime.recurrence()).isEqualTo(Recurrence.YEARLY);
+            assertThat(prime.amount()).isEqualByComparingTo("95.00");
+        });
+
+        // Adding one to the calendar leaves the other from the same company suggested.
+        String auth = "Bearer " + token(u);
+        mvc.perform(post("/api/subscriptions/suggestions/appleicloud/accept").header("Authorization", auth))
+                .andExpect(status().isCreated());
+        assertThat(detection.detect(u)).extracting(SubscriptionSuggestion::key)
+                .containsExactlyInAnyOrder("amazonprime", "applemusic");
+
+        mvc.perform(post("/api/subscriptions/suggestions/amazonprime/dismiss").header("Authorization", auth))
+                .andExpect(status().is2xxSuccessful());
+        assertThat(detection.detect(u)).extracting(SubscriptionSuggestion::key).containsExactly("applemusic");
+    }
+
     // --- helpers -------------------------------------------------------------
 
     private BankAccount newAccount(User owner) {

@@ -21,6 +21,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * Spots subscriptions in a user's transactions: the same merchant charging about the
@@ -28,7 +29,9 @@ import java.util.stream.Collectors;
  *
  * Weekly and monthly charges are judged on the last few months, so an old price or a
  * cancel-and-rejoin doesn't hide a current subscription. Yearly ones need the up to two years
- * a first import brings in. Merchants are grouped by {@link MerchantNames#key}.
+ * a first import brings in. Merchants are grouped by {@link MerchantNames#key}; when a group has
+ * no rhythm as a whole, each name within it is tried on its own, so "Amazon Prime" is still found
+ * among everyday "Amazon.co.uk" shopping.
  */
 @Service
 @RequiredArgsConstructor
@@ -58,14 +61,16 @@ public class SubscriptionDetectionService {
             return List.of();
         }
 
-        Set<String> ignored = dismissedRepository.findByUser(user).stream()
+        Set<String> dismissed = dismissedRepository.findByUser(user).stream()
                 .map(DismissedSuggestion::getMerchantKey)
-                .collect(Collectors.toCollection(HashSet::new));
+                .collect(Collectors.toSet());
         // Already on the calendar, so there is nothing left to suggest.
-        eventRepository.findByUserOrderByNextDueDateAsc(user).stream()
-                .map(event -> merchantKey(event.getTitle()))
-                .filter(Objects::nonNull)
-                .forEach(ignored::add);
+        Set<String> onCalendar = new HashSet<>();
+        for (var event : eventRepository.findByUserOrderByNextDueDateAsc(user)) {
+            Stream.of(merchantKey(event.getTitle()), nameKey(event.getTitle()))
+                    .filter(Objects::nonNull)
+                    .forEach(onCalendar::add);
+        }
 
         LocalDate today = LocalDate.now(clock);
         Map<String, List<Transaction>> byMerchant = transactionRepository
@@ -76,9 +81,8 @@ public class SubscriptionDetectionService {
                 .collect(Collectors.groupingBy(tx -> merchantKey(tx.getName())));
 
         return byMerchant.entrySet().stream()
-                .filter(entry -> !ignored.contains(entry.getKey()))
-                .map(entry -> analyse(entry.getKey(), entry.getValue(), today))
-                .flatMap(Optional::stream)
+                .filter(entry -> !dismissed.contains(entry.getKey()))
+                .flatMap(entry -> analyseMerchant(entry.getKey(), entry.getValue(), today, dismissed, onCalendar))
                 .sorted(Comparator.comparing(SubscriptionSuggestion::nextExpected)
                         .thenComparing(SubscriptionSuggestion::name))
                 .toList();
@@ -114,6 +118,27 @@ public class SubscriptionDetectionService {
     }
 
     // ---- analysis ------------------------------------------------------------
+
+    /** The merchant as a whole, or failing that each differently named charge within it. */
+    private Stream<SubscriptionSuggestion> analyseMerchant(String key, List<Transaction> transactions, LocalDate today,
+                                                           Set<String> dismissed, Set<String> onCalendar) {
+        if (!onCalendar.contains(key)) {
+            Optional<SubscriptionSuggestion> whole = analyse(key, transactions, today);
+            if (whole.isPresent()) {
+                return whole.stream();
+            }
+        }
+        Map<String, List<Transaction>> byName = transactions.stream()
+                .filter(tx -> nameKey(tx.getName()) != null)
+                .collect(Collectors.groupingBy(tx -> nameKey(tx.getName())));
+        if (byName.size() < 2) {
+            return Stream.empty();
+        }
+        return byName.entrySet().stream()
+                .filter(entry -> !dismissed.contains(entry.getKey()) && !onCalendar.contains(entry.getKey()))
+                .map(entry -> analyse(entry.getKey(), entry.getValue(), today))
+                .flatMap(Optional::stream);
+    }
 
     private Optional<SubscriptionSuggestion> analyse(String key, List<Transaction> transactions, LocalDate today) {
         List<Transaction> all = transactions.stream()
@@ -194,6 +219,14 @@ public class SubscriptionDetectionService {
 
     static String merchantKey(String name) {
         return MerchantNames.key(name);
+    }
+
+    /** The whole readable name as a key ("amazonprime"), for telling apart charges that share a first word. */
+    static String nameKey(String name) {
+        if (name == null) return null;
+        String letters = MerchantNames.display(name).toLowerCase(Locale.ROOT).replaceAll("[^a-z]", "");
+        if (letters.length() < 3) return null;
+        return letters.length() > 40 ? letters.substring(0, 40) : letters;
     }
 
     /** A readable name, taken from the most recent charge. */

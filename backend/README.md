@@ -77,7 +77,7 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 
 ## Subscription detection
 
-The app looks through synced transactions for a merchant that charges a steady amount on a steady weekly, monthly or yearly rhythm, and suggests it as a subscription. Weekly needs three charges and monthly two, judged on the last 6 months with amounts within 15%, so an old price doesn't hide a current subscription. Yearly needs two charges about a year apart, within 25% (renewal prices rise), which the two-year first import makes possible. Charges that stopped more than a week past their expected date are treated as cancelled. Merchants are grouped by the first meaningful word of their name, so two different merchants sharing a first word can occasionally be confused.
+The app looks through synced transactions for a merchant that charges a steady amount on a steady weekly, monthly or yearly rhythm, and suggests it as a subscription. Weekly needs three charges and monthly two, judged on the last 6 months with amounts within 15%, so an old price doesn't hide a current subscription. Yearly needs two charges about a year apart, within 25% (renewal prices rise), which the two-year first import makes possible. Charges that stopped more than a week past their expected date are treated as cancelled. Merchants are grouped by the first meaningful word of their name. When a group has no steady rhythm as a whole, each full name in it is checked on its own, so "Amazon Prime" is still found among everyday Amazon shopping, and "Apple iCloud" and "Apple Music" are suggested separately.
 
 ## Budgets and insights
 

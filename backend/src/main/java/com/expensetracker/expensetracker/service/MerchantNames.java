@@ -13,7 +13,8 @@ import java.util.regex.Pattern;
  */
 public final class MerchantNames {
 
-    private static final Pattern DOMAIN_SUFFIX = Pattern.compile("\\.(com|co\\.uk|uk|net|org|io)\\b", Pattern.CASE_INSENSITIVE);
+    // A web address ending, with any path after it ("APPLE.COM/BILL")
+    private static final Pattern DOMAIN_SUFFIX = Pattern.compile("\\.(com|co\\.uk|uk|net|org|io)\\b(/\\S*)?", Pattern.CASE_INSENSITIVE);
     private static final Set<String> COMPANY_SUFFIXES = Set.of("ltd", "limited", "plc", "inc", "llc");
     private static final Set<String> NOISE = Set.of(
             "the", "card", "payment", "purchase", "pos", "dd", "direct", "debit", "www", "http", "https",

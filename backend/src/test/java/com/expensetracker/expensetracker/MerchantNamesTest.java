@@ -21,6 +21,8 @@ class MerchantNamesTest {
         assertThat(MerchantNames.retailer("British Gas")).isEqualTo("British Gas");
         assertThat(MerchantNames.retailer("Dishoom Kings Cross")).isEqualTo("Dishoom Kings Cross");
         assertThat(MerchantNames.retailer("NETFLIX.COM 866-579-7172")).isEqualTo("Netflix");
+        assertThat(MerchantNames.display("Apple.com/bill iCloud")).isEqualTo("Apple iCloud");
+        assertThat(MerchantNames.display("AMAZON.CO.UK/PRIME")).isEqualTo("Amazon");
     }
 
     @Test
