@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { calendarApi } from "./api";
 import EventDialog from "./components/EventDialog";
 import { useNotifications } from "./NotificationsContext";
@@ -7,7 +7,9 @@ import { addDays, isISODate, longDate, monthGrid, monthTitle, parseISO, shortDat
 import { formatMoney } from "./format";
 import "./styles/calendar.css";
 
-const TYPE_LABEL = { PAYMENT: "Payment", SUBSCRIPTION: "Subscription", TASK: "Task" };
+const TYPE_LABEL = { PAYMENT: "Payment", SUBSCRIPTION: "Subscription", TASK: "Task", SAVING: "Saving" };
+// Calendar items have an event; a savings goal's regular saving has a goal instead.
+const entryKey = (entry) => `${entry.eventId ?? `goal-${entry.goalId}`}-${entry.date}`;
 const REPEAT_LABEL = { WEEKLY: "Repeats weekly", MONTHLY: "Repeats monthly", YEARLY: "Repeats yearly" };
 const MAX_CHIPS = 3;
 
@@ -74,7 +76,7 @@ export default function CalendarPage() {
 
   const eventsById = useMemo(() => new Map(events.map((e) => [e.id, e])), [events]);
 
-  const upcomingTotal = upcoming.reduce((sum, entry) => sum + (entry.amount ?? 0), 0);
+  const upcomingTotal = upcoming.reduce((sum, entry) => (entry.type === "SAVING" ? sum : sum + (entry.amount ?? 0)), 0);
   const selectedEntries = entriesByDate.get(selected) ?? [];
 
   const goToDate = (iso) => {
@@ -113,7 +115,7 @@ export default function CalendarPage() {
       <div className="page-head">
         <div>
           <h1>Calendar</h1>
-          <p className="muted">Payments, subscriptions and tasks, with a reminder before each one.</p>
+          <p className="muted">Payments, subscriptions, tasks and regular savings, with a reminder before each one.</p>
         </div>
         <button type="button" className="btn" onClick={() => setDialog({ date: selected })}>
           + Add
@@ -164,7 +166,7 @@ export default function CalendarPage() {
                   <span className="day-chips">
                     {dayEntries.slice(0, MAX_CHIPS).map((entry) => (
                       <span
-                        key={`${entry.eventId}-${entry.date}`}
+                        key={entryKey(entry)}
                         className={`chip chip-${entry.type.toLowerCase()}${entry.completed ? " chip-done" : ""}`}
                       >
                         <span className="chip-text">{entry.title}</span>
@@ -181,6 +183,7 @@ export default function CalendarPage() {
             <li><span className="legend-dot chip-payment" /> Payment</li>
             <li><span className="legend-dot chip-subscription" /> Subscription</li>
             <li><span className="legend-dot chip-task" /> Task</li>
+            <li><span className="legend-dot chip-saving" /> Saving</li>
             <li><span className="legend-dot chip-done" /> Done</li>
           </ul>
         </section>
@@ -206,7 +209,7 @@ export default function CalendarPage() {
                   const canComplete = !entry.completed && event?.nextDueDate === entry.date;
                   const confirming = confirmingDelete === entry.eventId;
                   return (
-                    <li key={`${entry.eventId}-${entry.date}`} className="agenda-item">
+                    <li key={entryKey(entry)} className="agenda-item">
                       <div className="agenda-top">
                         <strong className={entry.completed ? "struck" : undefined}>{entry.title}</strong>
                         {entry.amount != null && <span className="agenda-amount">{formatMoney(entry.amount)}</span>}
@@ -219,7 +222,11 @@ export default function CalendarPage() {
                       </div>
                       {entry.description && <p className="agenda-notes">{entry.description}</p>}
 
-                      {confirming ? (
+                      {entry.type === "SAVING" ? (
+                        <div className="agenda-actions">
+                          <Link to="/goals" className="btn btn-outline btn-sm">Open goal</Link>
+                        </div>
+                      ) : confirming ? (
                         <div className="agenda-confirm" role="alert">
                           <span>
                             Delete “{entry.title}”{entry.recurrence !== "NONE" ? " and all its repeats" : ""}?
@@ -287,7 +294,7 @@ export default function CalendarPage() {
             ) : (
               <ul className="upcoming">
                 {upcoming.slice(0, 6).map((entry) => (
-                  <li key={`${entry.eventId}-${entry.date}`}>
+                  <li key={entryKey(entry)}>
                     <button type="button" className="upcoming-item" onClick={() => goToDate(entry.date)}>
                       <span className="upcoming-date">{shortDate(entry.date)}</span>
                       <span className="upcoming-title">{entry.title}</span>

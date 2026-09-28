@@ -270,6 +270,7 @@ textarea.input { padding: 10px 14px; min-height: 84px; resize: vertical; }
 .badge-payment { background: var(--brand-soft); color: var(--brand-ink-strong); }
 .badge-subscription { background: var(--violet-soft); color: var(--violet); }
 .badge-task { background: var(--warn-soft); color: var(--warn); }
+.badge-saving { background: var(--gold-soft); color: var(--gold-text); }
 .badge-danger { background: var(--danger-soft); color: var(--danger); }
 .badge-done { background: var(--neutral-soft); color: var(--neutral-text); }
 

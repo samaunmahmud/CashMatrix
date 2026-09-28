@@ -56,10 +56,11 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | GET | `/api/category-rules` | Yes | The user's "always file this retailer under..." rules |
 | DELETE | `/api/category-rules/{id}` | Yes | Stop a rule (transactions it already filed keep their category) |
 | GET | `/api/goals` | Yes | Savings goals with progress, the monthly amount needed to hit the date, and recent changes |
-| POST | `/api/goals` | Yes | Create a goal (`{"name": "Holiday", "emoji": "🏖️", "targetAmount": 1200, "targetDate": "2027-06-30"}`) |
+| POST | `/api/goals` | Yes | Create a goal (`{"name": "Holiday", "emoji": "🏖️", "targetAmount": 1200, "targetDate": "2027-06-30"}`); add `planAmount`, `planFrequency` (`WEEKLY`/`MONTHLY`), `planStartDate` and `planAutoRecord` for a regular saving |
 | PUT | `/api/goals/{id}` | Yes | Change a goal |
 | DELETE | `/api/goals/{id}` | Yes | Delete a goal and its history |
 | POST | `/api/goals/{id}/contributions` | Yes | Record money added (`{"amount": 50}`) or taken out (negative) |
+| GET | `/api/insights/summary?month=yyyy-MM` | Yes | A look back at one month (default last month): spending against the month before, top categories, biggest purchases, budgets, money saved |
 | GET | `/api/insights?months=6` | Yes | Spending per month (1 to 12 months) and this month against last, overall and by category |
 | GET | `/api/notifications` | Yes | Latest 50 notifications (also refreshes the caller's reminders and budget alerts) |
 | GET | `/api/notifications/unread-count` | Yes | Number of unread notifications, for a badge |

@@ -33,6 +33,8 @@
 - **Subscriptions found for you**: weekly, monthly and yearly charges are spotted in your transactions and added to your calendar in one tap
 - **Budgets** per category, with warnings at 80% and when you go over
 - **Savings goals** with a progress ring, a "save this much a month" plan when you set a date, and a message when you get there
+- **Regular saving**: £50 every week or month on your calendar, with the date you'll reach the goal; recorded for you if you have a standing order, or a nudge on the day if not
+- **Monthly summary**: "Your September" with spending against the month before, where it went, biggest purchases, budgets kept and money saved, sent early each month
 - **Every transaction in one place**: search and filter across all accounts, re-file a transaction under your own category, add a note, and export to CSV for a spreadsheet
 - **Category rules**: "always file Tesco under Groceries" re-files past transactions from that retailer and new ones as they sync
 - **Payment calendar** for bills, subscriptions and tasks, with repeats and a reminder before each one
@@ -59,9 +61,14 @@ Monthly limits per category that turn amber near the limit and red when you go o
 <img src="docs/screenshots/desktop-budgets.png" alt="Budgets with progress bars showing on track, nearly used and over budget" width="900">
 
 ### Savings goals
-Put money aside for something and watch it fill up. With a target date, each goal says how much to save a month.
+Put money aside for something and watch it fill up. With a target date, each goal says how much to save a month; with a regular saving, it says when you'll get there.
 
 <img src="docs/screenshots/desktop-goals.png" alt="Savings goals with progress rings, one goal reached" width="900">
+
+### Monthly summary
+A look back at each month, with links into the transactions behind every figure.
+
+<img src="docs/screenshots/desktop-summary.png" alt="Monthly summary showing spending, change from the month before, categories, biggest purchases and budgets" width="900">
 
 ### Alerts
 Budget warnings, payment reminders and money in / out, with an unread count on the bell.

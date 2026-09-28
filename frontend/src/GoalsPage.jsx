@@ -6,7 +6,7 @@ import GoalMoneyDialog from "./components/GoalMoneyDialog";
 import GoalRing from "./components/GoalRing";
 import { MinusIcon, PencilIcon, PlusIcon, TrashIcon } from "./components/Icons";
 import Toast from "./components/Toast";
-import { mediumDate } from "./dates";
+import { mediumDate, shortDate } from "./dates";
 import { formatMoney } from "./format";
 import "./styles/goals.css";
 
@@ -149,6 +149,21 @@ export default function GoalsPage() {
 
                 <div className="goal-bar" aria-hidden="true"><span style={{ width: `${goal.percentSaved}%` }} /></div>
                 <p className="goal-plan">{planLine(goal, currency)}</p>
+                {goal.plan && goal.status !== "REACHED" && (
+                  <p className="goal-regular">
+                    <span className="badge badge-saving">{goal.plan.autoRecord ? "Standing order" : "Reminder"}</span>
+                    <span>
+                      {formatMoney(goal.plan.amount, currency)} every {goal.plan.frequency === "WEEKLY" ? "week" : "month"}, next on{" "}
+                      {shortDate(goal.plan.nextDate)}.
+                      {goal.plan.finishDate && (
+                        <>
+                          {" "}At this rate you'll get there by <strong>{mediumDate(goal.plan.finishDate)}</strong>
+                          {goal.targetDate && goal.plan.finishDate > goal.targetDate && <span className="goal-late"> (after your date)</span>}.
+                        </>
+                      )}
+                    </span>
+                  </p>
+                )}
 
                 <div className="goal-actions">
                   <button type="button" className="btn btn-sm" onClick={() => setMoney({ goal, mode: "add" })}>

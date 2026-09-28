@@ -38,5 +38,9 @@ public class NotificationPreference {
             columnDefinition = "numeric(12,2) default 25")
     private BigDecimal transactionAlertMinimum = DEFAULT_ALERT_MINIMUM;
 
+    // A look back at last month, early each month. On by default in the app; email and phone follow those switches.
+    @Column(name = "monthly_summary_enabled", nullable = false, columnDefinition = "boolean default true")
+    private boolean monthlySummaryEnabled = true;
+
     public static final BigDecimal DEFAULT_ALERT_MINIMUM = new BigDecimal("25.00");
 }

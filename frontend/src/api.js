@@ -105,12 +105,14 @@ export const budgetApi = {
 
 export const insightsApi = {
   get: (months = 6) => api.get("/insights", { params: { months } }),
+  summary: (month) => api.get("/insights/summary", { params: month ? { month } : {} }),
 };
 
 export const settingsApi = {
   get: () => api.get("/settings/notifications"),
   setEmail: (emailEnabled) => api.put("/settings/notifications", { emailEnabled }),
   setTransactionAlerts: (changes) => api.put("/settings/notifications", changes),
+  update: (changes) => api.put("/settings/notifications", changes),
   sendTest: () => api.post("/settings/notifications/test"),
   subscribePush: (subscription) => api.post("/push/subscribe", subscription),
   unsubscribePush: (endpoint) => api.post("/push/unsubscribe", { endpoint }),

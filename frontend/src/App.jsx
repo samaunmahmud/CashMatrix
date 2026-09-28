@@ -10,6 +10,7 @@ import NotificationsPage from "./NotificationsPage";
 import SettingsPage from "./SettingsPage";
 import TransactionsPage from "./TransactionsPage";
 import GoalsPage from "./GoalsPage";
+import SummaryPage from "./SummaryPage";
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -31,6 +32,7 @@ function AppRoutes() {
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/budgets" element={<BudgetsPage />} />
         <Route path="/goals" element={<GoalsPage />} />
+        <Route path="/summary" element={<SummaryPage />} />
         <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/accounts/:id" element={<AccountPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />

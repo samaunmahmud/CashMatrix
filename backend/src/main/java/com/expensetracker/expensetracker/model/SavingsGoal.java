@@ -47,6 +47,30 @@ public class SavingsGoal {
     @Column(name = "target_date")
     private LocalDate targetDate;
 
+    // A regular saving plan, such as 50 every month from the 25th. All empty when there is none.
+    @Column(name = "plan_amount", precision = 12, scale = 2)
+    private BigDecimal planAmount;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "plan_frequency", length = 10)
+    private Recurrence planFrequency;
+
+    @Column(name = "plan_start_date")
+    private LocalDate planStartDate;
+
+    // The next saving day that hasn't been dealt with yet.
+    @Column(name = "plan_next_date")
+    private LocalDate planNextDate;
+
+    // True when the user has a standing order doing the saving, so the app records each one itself.
+    // Otherwise it reminds them to put the money aside. The default lets the column join a table with rows.
+    @Column(name = "plan_auto_record", nullable = false, columnDefinition = "boolean default false")
+    private boolean planAutoRecord = false;
+
+    public boolean hasPlan() {
+        return planAmount != null && planFrequency != null && planNextDate != null;
+    }
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 }

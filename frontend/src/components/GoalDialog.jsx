@@ -16,6 +16,11 @@ export default function GoalDialog({ goal, initial, onClose, onSaved }) {
     emoji: start.emoji ?? "",
     targetAmount: start.targetAmount != null ? String(start.targetAmount) : "",
     targetDate: start.targetDate ?? "",
+    planOn: Boolean(start.plan),
+    planAmount: start.plan ? String(start.plan.amount) : "",
+    planFrequency: start.plan?.frequency ?? "MONTHLY",
+    planStartDate: start.plan?.startDate ?? todayISO(),
+    planAutoRecord: start.plan?.autoRecord ?? false,
   }));
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
@@ -36,6 +41,12 @@ export default function GoalDialog({ goal, initial, onClose, onSaved }) {
       emoji: form.emoji || null,
       targetAmount: Number(form.targetAmount),
       targetDate: form.targetDate || null,
+      ...(form.planOn && {
+        planAmount: Number(form.planAmount),
+        planFrequency: form.planFrequency,
+        planStartDate: form.planStartDate || null,
+        planAutoRecord: form.planAutoRecord,
+      }),
     };
     try {
       const res = isEdit ? await goalApi.update(goal.id, payload) : await goalApi.create(payload);
@@ -115,6 +126,63 @@ export default function GoalDialog({ goal, initial, onClose, onSaved }) {
           </label>
         </div>
         <p className="field-hint">With a date, we'll work out how much to put aside each month.</p>
+
+        <label className="check-row">
+          <input type="checkbox" checked={form.planOn} onChange={(e) => setForm((f) => ({ ...f, planOn: e.target.checked }))} />
+          <span>
+            <strong>Save a regular amount</strong>
+            <span className="field-hint">It goes on your calendar, and we'll show when you'll reach your goal.</span>
+          </span>
+        </label>
+
+        {form.planOn && (
+          <div className="plan-fields">
+            <div className="field-row">
+              <label className="field">
+                <span>Amount</span>
+                <input
+                  className="input"
+                  type="number"
+                  inputMode="decimal"
+                  min="0.01"
+                  step="0.01"
+                  value={form.planAmount}
+                  onChange={set("planAmount")}
+                  required
+                  placeholder="0.00"
+                />
+              </label>
+              <label className="field">
+                <span>First saving</span>
+                <input className="input" type="date" value={form.planStartDate} onChange={set("planStartDate")} required />
+              </label>
+            </div>
+            <fieldset className="segmented">
+              <legend className="field-label">How often</legend>
+              <div className="segmented-options">
+                {[["WEEKLY", "Every week"], ["MONTHLY", "Every month"]].map(([value, label]) => (
+                  <label key={value}>
+                    <input type="radio" name="plan-frequency" value={value} checked={form.planFrequency === value} onChange={set("planFrequency")} />
+                    <span>{label}</span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <label className="check-row">
+              <input
+                type="checkbox"
+                checked={form.planAutoRecord}
+                onChange={(e) => setForm((f) => ({ ...f, planAutoRecord: e.target.checked }))}
+              />
+              <span>
+                <strong>I've set up a standing order</strong>
+                <span className="field-hint">
+                  We'll add the money to this goal on each saving day. Leave this off and we'll remind you to put it aside instead.
+                </span>
+              </span>
+            </label>
+          </div>
+        )}
 
         {error && <p className="error-text" role="alert">{error}</p>}
 

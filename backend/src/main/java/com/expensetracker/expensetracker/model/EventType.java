@@ -7,5 +7,7 @@ package com.expensetracker.expensetracker.model;
 public enum EventType {
     TASK,
     PAYMENT,
-    SUBSCRIPTION
+    SUBSCRIPTION,
+    // A savings goal's regular saving. Only ever shown on the calendar; never stored as an event.
+    SAVING
 }

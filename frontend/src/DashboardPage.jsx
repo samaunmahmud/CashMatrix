@@ -59,7 +59,7 @@ export default function DashboardPage() {
       .catch(console.error)
       .finally(() => active && setLoadingTransactions(false));
     calendarApi.entries(today, addDays(today, 31))
-      .then((res) => active && setUpcoming(res.data.filter((entry) => !entry.completed)))
+      .then((res) => active && setUpcoming(res.data.filter((entry) => !entry.completed && entry.type !== "SAVING")))
       .catch(() => {});
     subscriptionApi.suggestions()
       .then((res) => active && setSuggestions(res.data))
@@ -245,7 +245,7 @@ export default function DashboardPage() {
             <section className="card" aria-labelledby="trend-title">
               <div className="card-header">
                 <h2 id="trend-title">Monthly spending</h2>
-                <span className="muted">Last {insights.months.length} month{insights.months.length === 1 ? "" : "s"}</span>
+                <Link to="/summary" className="see-all">Last month in detail</Link>
               </div>
               <MonthlyTrend insights={insights} currency={currency} />
             </section>

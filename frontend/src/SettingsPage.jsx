@@ -244,6 +244,21 @@ export default function SettingsPage() {
           />
         </div>
 
+        <div className="setting-row">
+          <div className="setting-text">
+            <h3 id="summary-label">Monthly summary</h3>
+            <p className="muted">
+              Early each month: what you spent, where it went, and how your budgets and goals did.
+            </p>
+          </div>
+          <Switch
+            checked={Boolean(settings?.monthlySummaryEnabled)}
+            disabled={!settings || busy === "summary"}
+            labelledBy="summary-label"
+            onChange={(enabled) => run("summary", () => settingsApi.update({ monthlySummaryEnabled: enabled }))}
+          />
+        </div>
+
         <div className="settings-test">
           <button
             type="button"

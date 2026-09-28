@@ -22,7 +22,10 @@ public class NotificationSettingsRequest {
     @Digits(integer = 6, fraction = 2, message = "Alert amount can have at most 2 decimal places")
     private BigDecimal transactionAlertMinimum;
 
+    private Boolean monthlySummaryEnabled;
+
     public boolean isEmpty() {
-        return emailEnabled == null && transactionAlertsEnabled == null && transactionAlertMinimum == null;
+        return emailEnabled == null && transactionAlertsEnabled == null && transactionAlertMinimum == null
+                && monthlySummaryEnabled == null;
     }
 }

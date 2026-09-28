@@ -90,3 +90,10 @@
   .goals-page .page-head { flex-direction: column; }
   .goals-summary-stats { gap: 20px; }
 }
+
+/* Regular saving */
+.plan-fields { display: flex; flex-direction: column; gap: 14px; padding: 14px; border-radius: var(--radius-sm); background: var(--surface-alt); }
+.goal-regular { display: flex; align-items: flex-start; gap: 8px; font-size: 0.8125rem; color: var(--muted); }
+.goal-regular .badge { flex: none; margin-top: 1px; }
+.goal-regular strong { color: var(--text); }
+.goal-late { color: var(--warn); font-weight: 600; }

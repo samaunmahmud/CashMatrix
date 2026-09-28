@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.dto;
 
+import com.expensetracker.expensetracker.model.Recurrence;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -25,4 +26,15 @@ public class GoalRequest {
 
     // Optional: when the user wants to have it by.
     private LocalDate targetDate;
+
+    // Optional regular saving: an amount and how often (WEEKLY or MONTHLY), from a start date (default today).
+    @DecimalMin(value = "0.01", message = "Regular amount must be more than zero")
+    @Digits(integer = 10, fraction = 2, message = "Regular amount can have at most 2 decimal places")
+    private BigDecimal planAmount;
+
+    private Recurrence planFrequency;
+
+    private LocalDate planStartDate;
+
+    private boolean planAutoRecord;
 }

@@ -5,6 +5,7 @@ import com.expensetracker.expensetracker.dto.CalendarEntryResponse;
 import com.expensetracker.expensetracker.dto.CalendarEventRequest;
 import com.expensetracker.expensetracker.dto.CalendarEventResponse;
 import com.expensetracker.expensetracker.model.CalendarEvent;
+import com.expensetracker.expensetracker.model.EventType;
 import com.expensetracker.expensetracker.model.Recurrence;
 import com.expensetracker.expensetracker.model.User;
 import com.expensetracker.expensetracker.repository.CalendarEventRepository;
@@ -30,6 +31,7 @@ public class CalendarService {
 
     private final CalendarEventRepository eventRepository;
     private final NotificationRepository notificationRepository;
+    private final GoalService goalService;
     private final Clock clock;
 
     /** Every occurrence between two dates, ready to draw on a calendar. */
@@ -55,6 +57,7 @@ public class CalendarService {
                         event.getAmount(), date, recurrence, done));
             }
         }
+        entries.addAll(goalService.calendarEntries(user, from, to));
         entries.sort(Comparator.comparing(CalendarEntryResponse::date)
                 .thenComparing(CalendarEntryResponse::title, String.CASE_INSENSITIVE_ORDER));
         return entries;
@@ -121,6 +124,9 @@ public class CalendarService {
     }
 
     private void apply(CalendarEvent event, CalendarEventRequest request) {
+        if (request.getType() == EventType.SAVING) {
+            throw new IllegalArgumentException("Regular savings are set up on a savings goal");
+        }
         event.setTitle(request.getTitle().trim());
         event.setDescription(request.getDescription());
         event.setType(request.getType());

@@ -53,6 +53,7 @@ public class NotificationSettingsService {
         if (request.getEmailEnabled() != null) preference.setEmailEnabled(request.getEmailEnabled());
         if (request.getTransactionAlertsEnabled() != null) preference.setTransactionAlertsEnabled(request.getTransactionAlertsEnabled());
         if (request.getTransactionAlertMinimum() != null) preference.setTransactionAlertMinimum(request.getTransactionAlertMinimum());
+        if (request.getMonthlySummaryEnabled() != null) preference.setMonthlySummaryEnabled(request.getMonthlySummaryEnabled());
         preferenceRepository.save(preference);
         return describe(user, preference);
     }
@@ -127,7 +128,8 @@ public class NotificationSettingsService {
                 pushGateway.publicKey(),
                 pushRepository.countByUser(user),
                 preference.isTransactionAlertsEnabled(),
-                preference.getTransactionAlertMinimum());
+                preference.getTransactionAlertMinimum(),
+                preference.isMonthlySummaryEnabled());
     }
 
     private void requireKnownPushService(String endpoint) {

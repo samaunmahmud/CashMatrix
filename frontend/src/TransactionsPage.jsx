@@ -5,7 +5,7 @@ import { categoryOf, knownCategories } from "./categories";
 import { DownloadIcon, SearchIcon } from "./components/Icons";
 import { TransactionRows } from "./components/TransactionList";
 import { transactionsCsv, downloadFile } from "./csv";
-import { addDays, addMonths, monthISO, todayISO } from "./dates";
+import { addDays, addMonths, monthISO, monthLabel, todayISO } from "./dates";
 import { formatMoney } from "./format";
 import useTransactionEditing from "./hooks/useTransactionEditing";
 import "./styles/account.css";
@@ -56,7 +56,11 @@ export default function TransactionsPage() {
   const direction = params.get("direction") ?? "all";
   const category = params.get("category") ?? "";
   const accountId = params.get("account") ?? "";
-  const period = PERIODS[params.get("period")] ? params.get("period") : "all";
+  // A single month ("month=2026-09", as the monthly summary links) takes the place of the period.
+  const month = /^\d{4}-\d{2}$/.test(params.get("month") ?? "") ? params.get("month") : null;
+  const period = month ? `month:${month}` : PERIODS[params.get("period")] ? params.get("period") : "all";
+  const periodRange = (today) =>
+    month ? [`${month}-01`, addDays(`${addMonths(month, 1)}-01`, -1)] : PERIODS[period].range(today);
 
   const setFilter = (name, value, fallback = "") => {
     setParams((current) => {
@@ -88,7 +92,7 @@ export default function TransactionsPage() {
   const categories = useMemo(() => knownCategories(transactions ?? []), [transactions]);
 
   const shown = useMemo(() => {
-    const [from, to] = PERIODS[period].range(todayISO());
+    const [from, to] = periodRange(todayISO());
     const q = query.trim();
     return (transactions ?? [])
       .filter((tx) => !accountId || String(tx.accountId) === accountId)
@@ -97,7 +101,7 @@ export default function TransactionsPage() {
       .filter((tx) => (!from || tx.transactionDate >= from) && (!to || tx.transactionDate <= to))
       .filter((tx) => matches(tx, q))
       .map((tx) => ({ ...tx, accountName: accountNames.get(tx.accountId) }));
-  }, [transactions, accountId, direction, category, period, query, accountNames]);
+  }, [transactions, accountId, direction, category, period, query, accountNames]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const totalOut = shown.reduce((sum, tx) => (tx.amount > 0 ? sum + tx.amount : sum), 0);
   const totalIn = shown.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
@@ -112,7 +116,7 @@ export default function TransactionsPage() {
   });
 
   const exportCsv = () => {
-    const name = ["cashmatrix-transactions", category, PERIODS[period].label !== "All time" && period, todayISO()]
+    const name = ["cashmatrix-transactions", category, month ?? (period !== "all" && period), todayISO()]
       .filter(Boolean)
       .join("-")
       .replace(/[^\w-]+/g, "-")
@@ -175,7 +179,21 @@ export default function TransactionsPage() {
         <div className="filter-row">
           <label className="field">
             <span>Period</span>
-            <select className="input" value={period} onChange={(e) => setFilter("period", e.target.value, "all")}>
+            <select
+              className="input"
+              value={period}
+              onChange={(e) => {
+                setParams((current) => {
+                  const next = new URLSearchParams(current);
+                  next.delete("month");
+                  if (e.target.value === "all") next.delete("period");
+                  else next.set("period", e.target.value);
+                  return next;
+                }, { replace: true });
+                setLimit(PAGE);
+              }}
+            >
+              {month && <option value={period}>{monthLabel(month)}</option>}
               {Object.entries(PERIODS).map(([value, { label }]) => (
                 <option key={value} value={value}>{label}</option>
               ))}

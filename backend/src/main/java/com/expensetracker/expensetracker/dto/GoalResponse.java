@@ -1,6 +1,8 @@
 package com.expensetracker.expensetracker.dto;
 
 import java.math.BigDecimal;
+import com.expensetracker.expensetracker.model.Recurrence;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -11,6 +13,7 @@ import java.util.List;
  * @param monthlyNeeded what to put aside each month from now to reach the target by its date;
  *                      empty when there is no date or the goal is reached
  * @param recent        the latest few changes to the saved amount, newest first
+ * @param plan          the regular saving, if there is one
  */
 public record GoalResponse(
         Long id,
@@ -23,9 +26,20 @@ public record GoalResponse(
         LocalDate targetDate,
         BigDecimal monthlyNeeded,
         GoalStatus status,
-        List<Contribution> recent
+        List<Contribution> recent,
+        Plan plan
 ) {
     public enum GoalStatus { REACHED, IN_PROGRESS, PAST_DATE }
+
+    /**
+     * A regular saving.
+     *
+     * @param nextDate   the next saving day
+     * @param finishDate the saving day that would complete the goal if the plan is kept up; empty once reached
+     */
+    public record Plan(BigDecimal amount, Recurrence frequency, LocalDate startDate, LocalDate nextDate,
+                       boolean autoRecord, LocalDate finishDate) {
+    }
 
     public record Contribution(Long id, BigDecimal amount, LocalDate madeOn) {
     }

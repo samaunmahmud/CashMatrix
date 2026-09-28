@@ -10,6 +10,7 @@ public record NotificationSettingsResponse(
         String pushPublicKey,
         long pushDevices,
         boolean transactionAlertsEnabled,
-        BigDecimal transactionAlertMinimum
+        BigDecimal transactionAlertMinimum,
+        boolean monthlySummaryEnabled
 ) {
 }

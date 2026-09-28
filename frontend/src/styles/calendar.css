@@ -109,6 +109,7 @@
 .chip-payment { background: var(--brand-soft); color: var(--brand-ink-strong); }
 .chip-subscription { background: var(--violet-soft); color: var(--violet); }
 .chip-task { background: var(--warn-soft); color: var(--warn); }
+.chip-saving { background: var(--gold-soft); color: var(--gold-text); }
 .chip-done { background: var(--neutral-soft); color: var(--neutral-text); text-decoration: line-through; }
 .day-selected .chip-payment { background: var(--surface); }
 .day-more { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
@@ -128,6 +129,7 @@
 .legend-dot.chip-payment { background: var(--brand); }
 .legend-dot.chip-subscription { background: var(--violet); }
 .legend-dot.chip-task { background: #d18a1d; }
+.legend-dot.chip-saving { background: var(--gold); }
 .legend-dot.chip-done { background: #b5bfba; }
 
 /* Selected day */
@@ -210,6 +212,7 @@
   .chip-payment { background: var(--brand); }
   .chip-subscription { background: var(--violet); }
   .chip-task { background: #d18a1d; }
+  .chip-saving { background: var(--gold); }
   .chip-done { background: #b5bfba; }
   .chip-text { display: none; }
   .day-more { display: none; }
