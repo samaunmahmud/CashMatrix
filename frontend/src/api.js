@@ -58,6 +58,20 @@ export const accountApi = {
 export const transactionApi = {
   list: () => api.get("/transactions"),
   sync: () => api.post("/transactions/sync"),
+  update: (id, data) => api.put(`/transactions/${id}`, data),
+};
+
+export const categoryRuleApi = {
+  list: () => api.get("/category-rules"),
+  remove: (id) => api.delete(`/category-rules/${id}`),
+};
+
+export const goalApi = {
+  list: () => api.get("/goals"),
+  create: (data) => api.post("/goals", data),
+  update: (id, data) => api.put(`/goals/${id}`, data),
+  remove: (id) => api.delete(`/goals/${id}`),
+  contribute: (id, amount) => api.post(`/goals/${id}/contributions`, { amount }),
 };
 
 export const calendarApi = {

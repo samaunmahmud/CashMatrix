@@ -4,6 +4,8 @@ import { accountApi, transactionApi } from "./api";
 import { AccountSummary } from "./components/AccountCard";
 import { ChevronLeftIcon, SearchIcon } from "./components/Icons";
 import { TransactionRows } from "./components/TransactionList";
+import { categoryOf, knownCategories } from "./categories";
+import useTransactionEditing from "./hooks/useTransactionEditing";
 import { mediumDate } from "./dates";
 import { formatMoney } from "./format";
 import "./styles/account.css";
@@ -20,7 +22,7 @@ const FILTERS = [
 function matches(tx, query) {
   if (!query) return true;
   const q = query.toLowerCase();
-  return [tx.merchant, tx.name, tx.userCategory, tx.plaidCategory, Math.abs(tx.amount).toFixed(2)]
+  return [tx.merchant, tx.name, categoryOf(tx), tx.note, Math.abs(tx.amount).toFixed(2)]
     .some((field) => field?.toLowerCase().includes(q));
 }
 
@@ -32,6 +34,7 @@ export default function AccountPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("all");
   const [limit, setLimit] = useState(PAGE);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     let active = true;
@@ -46,7 +49,7 @@ export default function AccountPage() {
     return () => {
       active = false;
     };
-  }, [id]);
+  }, [id, reloadKey]);
 
   const shown = useMemo(
     () =>
@@ -59,6 +62,14 @@ export default function AccountPage() {
   const totalIn = shown.reduce((sum, tx) => (tx.amount < 0 ? sum - tx.amount : sum), 0);
   const currency = account?.currency;
   const earliest = transactions?.length ? transactions[transactions.length - 1].transactionDate : null;
+  const categories = useMemo(() => knownCategories(transactions ?? []), [transactions]);
+  const editor = useTransactionEditing({
+    setTransactions,
+    reload: () => setReloadKey((key) => key + 1),
+    currency,
+    categories,
+    accountNameOf: () => account?.name,
+  });
 
   return (
     <div className="account-page">
@@ -97,7 +108,7 @@ export default function AccountPage() {
                     setQuery(e.target.value);
                     setLimit(PAGE);
                   }}
-                  placeholder="Search by name, category or amount"
+                  placeholder="Search by name, category, note or amount"
                 />
               </label>
               <fieldset className="segmented statement-filter">
@@ -132,7 +143,7 @@ export default function AccountPage() {
               </p>
             ) : (
               <>
-                <TransactionRows transactions={shown.slice(0, limit)} currency={currency} />
+                <TransactionRows transactions={shown.slice(0, limit)} currency={currency} onSelect={editor.open} />
                 {shown.length > limit && (
                   <button type="button" className="btn btn-outline btn-sm show-more" onClick={() => setLimit((l) => l + PAGE)}>
                     Show more ({shown.length - limit} left)
@@ -143,6 +154,8 @@ export default function AccountPage() {
           </section>
         </>
       )}
+
+      {editor.ui}
     </div>
   );
 }

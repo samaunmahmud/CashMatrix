@@ -4,7 +4,7 @@
 .budgets-page .icon-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .budgets-page .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 .icon-btn-danger { background: var(--danger-soft); color: var(--danger); }
-.budgets-page .icon-btn-danger:hover { background: #f6d3cf; }
+.budgets-page .icon-btn-danger:hover, .goals-page .icon-btn-danger:hover { background: var(--danger-soft-hover); }
 
 .month-switcher { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .month-switcher h2 { min-width: 180px; text-align: center; font-size: 1.15rem; }

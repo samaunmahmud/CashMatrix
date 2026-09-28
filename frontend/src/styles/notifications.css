@@ -23,4 +23,4 @@
 .notice-title { font-weight: 500; }
 .notice-unread .notice-title { font-weight: 800; }
 .notice-message { font-size: 0.875rem; color: var(--muted); }
-.notice-date { font-size: 0.8125rem; font-weight: 700; color: var(--brand-strong); white-space: nowrap; }
+.notice-date { font-size: 0.8125rem; font-weight: 700; color: var(--brand-ink-strong); white-space: nowrap; }

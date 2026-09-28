@@ -25,4 +25,4 @@
 .statement-filter span { padding: 11px 8px; white-space: nowrap; }
 .statement-totals { margin-bottom: 12px; font-size: 0.875rem; color: var(--muted); }
 .statement-totals strong { color: var(--text); }
-.statement-totals .tx-in { color: var(--brand); }
+.statement-totals .tx-in { color: var(--brand-ink); }

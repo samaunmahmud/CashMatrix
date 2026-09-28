@@ -45,6 +45,10 @@ public class Transaction {
 
     private Boolean pending = false;
 
+    // The user's own reminder about what it was for ("Mum's birthday present").
+    @Column(length = 200)
+    private String note;
+
     @Column(name = "created_at", updatable = false)
     private Instant createdAt = Instant.now();
 }

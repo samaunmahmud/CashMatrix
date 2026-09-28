@@ -12,6 +12,13 @@
     <meta name="apple-mobile-web-app-title" content="CashMatrix" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <title>CashMatrix</title>
+    <script>
+      // Apply the saved light / dark choice before anything draws (see src/theme.js).
+      try {
+        var theme = localStorage.getItem("cashmatrix:theme");
+        if (theme === "light" || theme === "dark") document.documentElement.setAttribute("data-theme", theme);
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

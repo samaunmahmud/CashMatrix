@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { formatMoney } from "../format";
 
 const COLOURS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)", "var(--chart-6)"];
@@ -62,7 +63,13 @@ export default function SpendingDonut({ categories, total, currency, groupedBy =
         {slices.map(([name, amount], index) => (
           <li key={name}>
             <span className="donut-swatch" style={{ background: COLOURS[index % COLOURS.length] }} />
-            <span className="donut-name">{name}</span>
+            {groupedBy === "category" && name !== "Other" ? (
+              <Link className="donut-name" to={`/transactions?category=${encodeURIComponent(name)}&period=90d&direction=out`}>
+                {name}
+              </Link>
+            ) : (
+              <span className="donut-name">{name}</span>
+            )}
             <span className="donut-amount">{formatMoney(amount, currency)}</span>
             <span className="donut-percent">{Math.round((amount / total) * 100)}%</span>
           </li>

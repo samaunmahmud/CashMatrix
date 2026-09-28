@@ -36,12 +36,12 @@
   border: 0;
   border-radius: 50%;
   background: var(--brand-soft);
-  color: var(--brand-strong);
+  color: var(--brand-ink-strong);
   font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
 }
-.icon-btn:hover { background: #cfe7de; }
+.icon-btn:hover { background: var(--soft-hover); }
 
 .calendar-grid {
   display: grid;
@@ -56,7 +56,7 @@
 .weekday {
   padding: 8px 4px;
   background: var(--brand-soft);
-  color: var(--brand-strong);
+  color: var(--brand-ink-strong);
   font-size: 0.75rem;
   font-weight: 700;
   text-align: center;
@@ -76,8 +76,8 @@
   cursor: pointer;
   overflow: hidden;
 }
-.day:hover { background: #f6faf8; }
-.day-outside { background: #f8faf9; color: #8a9891; }
+.day:hover { background: var(--surface-alt); }
+.day-outside { background: var(--surface-muted); color: var(--text-faint); }
 .day-selected { box-shadow: inset 0 0 0 2px var(--brand); background: var(--brand-soft); }
 .day:focus-visible { box-shadow: inset 0 0 0 3px var(--brand-mid); position: relative; }
 
@@ -106,11 +106,11 @@
   overflow: hidden;
   text-overflow: ellipsis;
 }
-.chip-payment { background: var(--brand-soft); color: var(--brand-strong); }
+.chip-payment { background: var(--brand-soft); color: var(--brand-ink-strong); }
 .chip-subscription { background: var(--violet-soft); color: var(--violet); }
 .chip-task { background: var(--warn-soft); color: var(--warn); }
-.chip-done { background: #eceeed; color: #6b7873; text-decoration: line-through; }
-.day-selected .chip-payment { background: #fff; }
+.chip-done { background: var(--neutral-soft); color: var(--neutral-text); text-decoration: line-through; }
+.day-selected .chip-payment { background: var(--surface); }
 .day-more { font-size: 0.7rem; color: var(--muted); font-weight: 600; }
 
 .legend {
@@ -160,7 +160,7 @@
 }
 .upcoming li + li { border-top: 1px solid var(--line); }
 .upcoming-item:hover { background: var(--brand-soft); }
-.upcoming-date { font-size: 0.8125rem; font-weight: 700; color: var(--brand-strong); }
+.upcoming-date { font-size: 0.8125rem; font-weight: 700; color: var(--brand-ink-strong); }
 .upcoming-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .upcoming-amount { font-weight: 700; }
 
@@ -172,9 +172,10 @@
   border: 0;
   border-radius: var(--radius);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  background: var(--surface);
   color: var(--text);
 }
-.dialog::backdrop { background: rgba(2, 40, 28, 0.55); }
+.dialog::backdrop { background: var(--backdrop); }
 .dialog-body { display: flex; flex-direction: column; gap: 16px; padding: 22px; }
 .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 4px; }
 .field-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; }
@@ -186,7 +187,7 @@
 .segmented span {
   display: block;
   padding: 10px 6px;
-  border: 1.5px solid #b9c7c0;
+  border: 1.5px solid var(--input-line);
   border-radius: var(--radius-sm);
   text-align: center;
   font-weight: 600;

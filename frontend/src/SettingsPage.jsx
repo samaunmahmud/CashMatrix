@@ -2,6 +2,8 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { passkeyApi, settingsApi } from "./api";
 import { useAuth } from "./AuthContext";
+import AppearanceSettings from "./components/AppearanceSettings";
+import CategoryRulesSettings from "./components/CategoryRulesSettings";
 import { FingerprintIcon, TrashIcon } from "./components/Icons";
 import { formatMoney } from "./format";
 import { createPasskey, passkeysSupported, wasCancelled } from "./passkeys";
@@ -306,6 +308,10 @@ export default function SettingsPage() {
           </p>
         )}
       </section>
+
+      <AppearanceSettings />
+
+      <CategoryRulesSettings />
 
       <section className="card settings-card" aria-labelledby="account-title">
         <h2 id="account-title">Your account</h2>

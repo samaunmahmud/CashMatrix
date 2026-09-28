@@ -8,6 +8,8 @@ import BudgetsPage from "./BudgetsPage";
 import AccountPage from "./AccountPage";
 import NotificationsPage from "./NotificationsPage";
 import SettingsPage from "./SettingsPage";
+import TransactionsPage from "./TransactionsPage";
+import GoalsPage from "./GoalsPage";
 
 function ProtectedRoute({ children }) {
   const { user } = useAuth();
@@ -28,6 +30,8 @@ function AppRoutes() {
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/calendar" element={<CalendarPage />} />
         <Route path="/budgets" element={<BudgetsPage />} />
+        <Route path="/goals" element={<GoalsPage />} />
+        <Route path="/transactions" element={<TransactionsPage />} />
         <Route path="/accounts/:id" element={<AccountPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings" element={<SettingsPage />} />

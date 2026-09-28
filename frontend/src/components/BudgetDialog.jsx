@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { budgetApi } from "../api";
-
-function errorMessage(err) {
-  const data = err.response?.data;
-  if (data?.error) return data.error;
-  if (data && typeof data === "object") return Object.values(data).join(" ");
-  return "Couldn't save. Please try again.";
-}
+import { errorMessage } from "../errors";
 
 /**
  * Add or edit a monthly budget. The category box offers the categories the user

@@ -11,6 +11,7 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 - A newly linked bank brings in up to two years of transactions, later syncs the last 90 days
 - Transactions are deduplicated so syncing multiple times doesn't create duplicates
 - Users can set monthly budgets per category and get warned when one is nearly used or overspent
+- Users can save towards goals, re-file transactions under their own categories, and make rules that file a retailer the same way every time
 - Month-by-month spending totals, and this month compared with the same point last month
 - Alerts for money in and out, and a background bank sync every 4 hours so they reach phones
 - Log in with a passkey (fingerprint, face or phone screen lock) as well as a password
@@ -51,6 +52,14 @@ This is the backend for CashMatrix, my expense tracker app, a full-stack portfol
 | POST | `/api/budgets` | Yes | Create a budget (`{"category": "Groceries", "monthlyLimit": 250}`) |
 | PUT | `/api/budgets/{id}` | Yes | Change a budget's category or limit |
 | DELETE | `/api/budgets/{id}` | Yes | Delete a budget |
+| PUT | `/api/transactions/{id}` | Yes | Re-file a transaction and add a note (`{"category": "Groceries", "note": "...", "applyToRetailer": true}`); an empty category goes back to the bank's |
+| GET | `/api/category-rules` | Yes | The user's "always file this retailer under..." rules |
+| DELETE | `/api/category-rules/{id}` | Yes | Stop a rule (transactions it already filed keep their category) |
+| GET | `/api/goals` | Yes | Savings goals with progress, the monthly amount needed to hit the date, and recent changes |
+| POST | `/api/goals` | Yes | Create a goal (`{"name": "Holiday", "emoji": "🏖️", "targetAmount": 1200, "targetDate": "2027-06-30"}`) |
+| PUT | `/api/goals/{id}` | Yes | Change a goal |
+| DELETE | `/api/goals/{id}` | Yes | Delete a goal and its history |
+| POST | `/api/goals/{id}/contributions` | Yes | Record money added (`{"amount": 50}`) or taken out (negative) |
 | GET | `/api/insights?months=6` | Yes | Spending per month (1 to 12 months) and this month against last, overall and by category |
 | GET | `/api/notifications` | Yes | Latest 50 notifications (also refreshes the caller's reminders and budget alerts) |
 | GET | `/api/notifications/unread-count` | Yes | Number of unread notifications, for a badge |

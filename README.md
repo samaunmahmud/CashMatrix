@@ -32,10 +32,14 @@
 - **A clear picture of your money**: balance after card debt, spending by category or retailer, and month-by-month trends compared with last month
 - **Subscriptions found for you**: weekly, monthly and yearly charges are spotted in your transactions and added to your calendar in one tap
 - **Budgets** per category, with warnings at 80% and when you go over
+- **Savings goals** with a progress ring, a "save this much a month" plan when you set a date, and a message when you get there
+- **Every transaction in one place**: search and filter across all accounts, re-file a transaction under your own category, add a note, and export to CSV for a spreadsheet
+- **Category rules**: "always file Tesco under Groceries" re-files past transactions from that retailer and new ones as they sync
 - **Payment calendar** for bills, subscriptions and tasks, with repeats and a reminder before each one
 - **Alerts** in the app, by email and as push notifications on your phone, including money in and out
 - **Passkey login** with fingerprint or face (WebAuthn)
 - **Works on phones**: responsive layout with a bottom navigation bar, installable to the Home Screen
+- **Dark mode** that follows your device, or pick light or dark in Settings
 
 ## Screenshots
 
@@ -53,6 +57,11 @@ Payments, subscriptions and tasks on a month view, with what's coming up in the 
 Monthly limits per category that turn amber near the limit and red when you go over, plus a daily allowance for the rest of the month.
 
 <img src="docs/screenshots/desktop-budgets.png" alt="Budgets with progress bars showing on track, nearly used and over budget" width="900">
+
+### Savings goals
+Put money aside for something and watch it fill up. With a target date, each goal says how much to save a month.
+
+<img src="docs/screenshots/desktop-goals.png" alt="Savings goals with progress rings, one goal reached" width="900">
 
 ### Alerts
 Budget warnings, payment reminders and money in / out, with an unread count on the bell.
@@ -108,7 +117,7 @@ flowchart LR
 
 | Folder | What it is |
 |---|---|
-| [`backend/`](backend) | Spring Boot API: auth, Plaid, calendar, reminders, budgets, insights, subscription detection ([README](backend/README.md)) |
+| [`backend/`](backend) | Spring Boot API: auth, Plaid, calendar, reminders, budgets, savings goals, category rules, insights, subscription detection ([README](backend/README.md)) |
 | [`frontend/`](frontend) | React app ([README](frontend/README.md)) |
 | [`design/`](design) | Vector screens (SVG) and design tokens that open in Figma, Penpot or Sketch ([README](design/README.md)) |
 | [`docs/screenshots/`](docs/screenshots) | The screenshots above |

@@ -1,12 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Link } from "react-router-dom";
-import { accountApi, budgetApi, calendarApi, insightsApi, plaidApi, subscriptionApi, transactionApi } from "./api";
+import { accountApi, budgetApi, calendarApi, goalApi, insightsApi, plaidApi, subscriptionApi, transactionApi } from "./api";
+import { categoryOf, knownCategories } from "./categories";
 import { useAuth } from "./AuthContext";
 import { useNotifications } from "./NotificationsContext";
 import AccountCard from "./components/AccountCard";
 import BudgetsGlance from "./components/BudgetsGlance";
 import EventDialog from "./components/EventDialog";
+import GoalsGlance from "./components/GoalsGlance";
 import MonthlyTrend from "./components/MonthlyTrend";
 import QuickActions from "./components/QuickActions";
 import SpendingDonut from "./components/SpendingDonut";
@@ -15,6 +17,7 @@ import TransactionList from "./components/TransactionList";
 import { addDays, shortDate, todayISO, updatedLabel } from "./dates";
 import { formatMoney } from "./format";
 import { retailerGroups } from "./retailers";
+import useTransactionEditing from "./hooks/useTransactionEditing";
 import "./styles/dashboard.css";
 
 const greeting = () => {
@@ -31,6 +34,7 @@ export default function DashboardPage() {
   const [suggestions, setSuggestions] = useState([]);
   const [insights, setInsights] = useState(null);
   const [budgets, setBudgets] = useState(null);
+  const [goals, setGoals] = useState(null);
   const [statusMessage, setStatusMessage] = useState("");
   const [syncing, setSyncing] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
@@ -38,7 +42,7 @@ export default function DashboardPage() {
   const [spendingBy, setSpendingBy] = useState("category");
 
   const { user } = useAuth();
-  const { unread, refreshUnread } = useNotifications();
+  const { refreshUnread } = useNotifications();
   const reload = useCallback(() => setReloadKey((key) => key + 1), []);
 
   // One place that loads everything the page shows. Each piece fails on its own, so a
@@ -65,6 +69,9 @@ export default function DashboardPage() {
       .catch(() => {});
     budgetApi.overview()
       .then((res) => active && setBudgets(res.data))
+      .catch(() => {});
+    goalApi.list()
+      .then((res) => active && setGoals(res.data))
       .catch(() => {});
 
     return () => {
@@ -127,7 +134,7 @@ export default function DashboardPage() {
   const groupOf = (tx) =>
     spendingBy === "retailer"
       ? retailers.get(retailerOf(tx)) ?? retailerOf(tx)
-      : tx.userCategory || tx.plaidCategory || "Uncategorised";
+      : categoryOf(tx);
   const categoryTotals = recent.reduce((acc, tx) => {
     if (tx.amount <= 0) return acc;
     const group = groupOf(tx);
@@ -155,6 +162,15 @@ export default function DashboardPage() {
     .pop();
 
   const firstName = user?.fullName?.split(" ")[0];
+  const accountNames = new Map((accounts ?? []).map((a) => [a.id, a.name]));
+
+  const editor = useTransactionEditing({
+    setTransactions,
+    reload,
+    currency,
+    categories: knownCategories(transactions),
+    accountNameOf: (tx) => accountNames.get(tx.accountId),
+  });
 
   return (
     <div className="home">
@@ -221,7 +237,6 @@ export default function DashboardPage() {
         onAdd={() => setAddOpen(true)}
         onLinkBank={() => open()}
         linkDisabled={!ready}
-        unread={unread}
       />
 
       <div className="home-grid">
@@ -268,6 +283,7 @@ export default function DashboardPage() {
               currency={currency}
               onRefresh={syncNow}
               refreshing={syncing}
+              onSelect={editor.open}
             />
           )}
         </div>
@@ -300,6 +316,8 @@ export default function DashboardPage() {
 
           {connected && budgets && <BudgetsGlance overview={budgets} currency={currency} />}
 
+          {goals && <GoalsGlance goals={goals} currency={currency} />}
+
           <SubscriptionSuggestions
             suggestions={suggestions}
             currency={currency}
@@ -310,6 +328,8 @@ export default function DashboardPage() {
           />
         </aside>
       </div>
+
+      {editor.ui}
 
       {addOpen && (
         <EventDialog

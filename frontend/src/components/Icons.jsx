@@ -36,3 +36,7 @@ export const PencilIcon = icon(<><path d="M4 20h4L19 9l-4-4L4 16z" /><path d="M1
 export const TrashIcon = icon(<><path d="M4 7h16M10 11v6M14 11v6" /><path d="M6 7l1 13h10l1-13M9 7V4h6v3" /></>);
 export const FingerprintIcon = icon(<><path d="M12 11v3a8 8 0 01-1.5 4.6" /><path d="M8.5 9.5A4 4 0 0116 11v1.5" /><path d="M16 15.5a13 13 0 01-.6 3" /><path d="M5.4 7.5A8 8 0 0120 11v2" /><path d="M4 12v.5a6 6 0 01-.6 2.6" /><path d="M8 12.5v1a12 12 0 01-1.3 5.4" /></>);
 export const SearchIcon = icon(<><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /></>);
+export const GoalIcon = icon(<><circle cx="12" cy="12" r="9" /><circle cx="12" cy="12" r="5" /><circle cx="12" cy="12" r="1" /></>);
+export const ListIcon = icon(<><path d="M9 6h11M9 12h11M9 18h11" /><path d="M4 6h.01M4 12h.01M4 18h.01" /></>);
+export const DownloadIcon = icon(<><path d="M12 4v11" /><path d="M7 10l5 5 5-5" /><path d="M5 20h14" /></>);
+export const MinusIcon = icon(<path d="M5 12h14" />);

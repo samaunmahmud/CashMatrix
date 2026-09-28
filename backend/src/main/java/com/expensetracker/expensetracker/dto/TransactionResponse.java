@@ -23,13 +23,14 @@ public record TransactionResponse(
         String plaidCategory,
         String userCategory,
         LocalDate transactionDate,
-        boolean pending
+        boolean pending,
+        String note
 ) {
     public static TransactionResponse from(Transaction tx) {
         return new TransactionResponse(
                 tx.getId(), tx.getBankAccount().getId(), tx.getName(), MerchantNames.display(tx.getName()),
                 MerchantNames.retailer(tx.getName()),
                 tx.getAmount(), tx.getPlaidCategory(), tx.getUserCategory(), tx.getTransactionDate(),
-                Boolean.TRUE.equals(tx.getPending()));
+                Boolean.TRUE.equals(tx.getPending()), tx.getNote());
     }
 }

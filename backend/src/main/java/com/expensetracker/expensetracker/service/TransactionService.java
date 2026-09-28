@@ -35,6 +35,7 @@ public class TransactionService {
     private final BankAccountService bankAccountService;
     private final PlaidService plaidService;
     private final TransactionAlertService alertService;
+    private final CategoryRuleService categoryRuleService;
     private final Clock clock;
 
     /** A sync the user asked for: they are in the app, so any alerts it raises are shown there. */
@@ -63,6 +64,7 @@ public class TransactionService {
                 .map(BankAccount::getPlaidAccessToken)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
 
+        Map<String, String> rules = categoryRuleService.rulesFor(user);
         int savedCount = 0;
         List<Transaction> alertable = new ArrayList<>();
 
@@ -79,7 +81,7 @@ public class TransactionService {
                 total = totalValue instanceof Number number ? number.intValue() : transactions.size();
 
                 for (Map<String, Object> tx : transactions) {
-                    Transaction saved = saveIfNew(tx, byPlaidId);
+                    Transaction saved = saveIfNew(tx, byPlaidId, rules);
                     if (saved == null) continue;
                     savedCount++;
                     if (saved.getBankAccount().getTransactionsSyncedAt() != null) alertable.add(saved);
@@ -111,7 +113,7 @@ public class TransactionService {
 
     /** @return the saved transaction, or null if it was already stored or isn't for one of the user's accounts */
     @SuppressWarnings("unchecked")
-    private Transaction saveIfNew(Map<String, Object> tx, Map<String, BankAccount> byPlaidId) {
+    private Transaction saveIfNew(Map<String, Object> tx, Map<String, BankAccount> byPlaidId, Map<String, String> rules) {
         String plaidTxId = (String) tx.get("transaction_id");
         if (transactionRepository.findByPlaidTransactionId(plaidTxId).isPresent()) {
             return null;
@@ -134,6 +136,8 @@ public class TransactionService {
         if (categories != null && !categories.isEmpty()) {
             transaction.setPlaidCategory(categories.get(categories.size() - 1));
         }
+        // The user's "always file this retailer under..." rule wins over the bank's category.
+        transaction.setUserCategory(rules.get(CategoryRuleService.keyOf(transaction.getName())));
 
         return transactionRepository.save(transaction);
     }
