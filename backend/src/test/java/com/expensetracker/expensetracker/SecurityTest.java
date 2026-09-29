@@ -55,6 +55,15 @@ class SecurityTest {
     }
 
     @Test
+    void anUnknownPathAnswers404AndAWrongMethod405NotAServerError() throws Exception {
+        mvc.perform(get("/api/auth/does-not-exist"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.error").value("Not found"));
+        mvc.perform(get("/api/auth/login"))
+                .andExpect(status().isMethodNotAllowed());
+    }
+
+    @Test
     void anExpiredTokenIsRejectedWith401NotAServerError() throws Exception {
         mvc.perform(get("/api/calendar/events").header("Authorization", "Bearer " + expiredToken("someone@example.com")))
                 .andExpect(status().isUnauthorized());
