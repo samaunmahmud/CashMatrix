@@ -18,6 +18,8 @@
   color: #fff;
 }
 .auth-brand { display: flex; align-items: center; gap: 12px; font-size: 1.25rem; font-weight: 700; letter-spacing: -0.02em; }
+.auth-crest { display: flex; margin: 0 0 28px -8px; }
+.auth-crest svg { width: clamp(180px, 22vw, 260px); height: auto; filter: drop-shadow(0 12px 28px rgba(0, 0, 0, 0.35)); }
 .auth-pitch h1 { max-width: 16ch; font-size: 2.25rem; line-height: 1.15; letter-spacing: -0.03em; }
 .auth-points { display: flex; flex-direction: column; gap: 14px; margin: 28px 0 0; padding: 0; list-style: none; }
 .auth-points li { display: flex; align-items: center; gap: 12px; color: rgba(255, 255, 255, 0.86); }
@@ -75,6 +77,9 @@
 @media (max-width: 860px) {
   .auth { display: block; }
   .auth-aside { padding: calc(20px + env(safe-area-inset-top)) 20px 24px; gap: 16px; }
+  .auth-crest { justify-content: center; margin: 0 0 12px; }
+  .auth-crest svg { width: 150px; }
+  .auth-pitch { text-align: center; }
   .auth-pitch h1 { max-width: none; font-size: 1.375rem; }
   .auth-points, .auth-foot { display: none; }
   .auth-main { align-items: flex-start; padding: 28px 20px 40px; }

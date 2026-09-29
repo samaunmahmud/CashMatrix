@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from "react-router-dom";
 import { authApi } from "./api";
 import { useAuth } from "./AuthContext";
 import { CheckIcon, FingerprintIcon } from "./components/Icons";
+import TigerCrest from "./components/TigerCrest";
 import TigerLogo from "./components/TigerLogo";
 import { passkeysSupported, signInWithPasskey, wasCancelled } from "./passkeys";
 import "./styles/auth.css";
@@ -68,10 +69,13 @@ export default function LoginPage() {
     <div className="auth">
       <aside className="auth-aside">
         <div className="auth-brand">
-          <TigerLogo size={40} title="CashMatrix tiger logo" />
+          <TigerLogo size={32} />
           <span>CashMatrix</span>
         </div>
         <div className="auth-pitch">
+          <div className="auth-crest">
+            <TigerCrest size={240} title="CashMatrix tiger logo" />
+          </div>
           <h1>All your money, bills and dates in one place.</h1>
           <ul className="auth-points">
             <li><CheckIcon size={18} /> See every account and card balance together</li>
