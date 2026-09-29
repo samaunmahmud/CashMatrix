@@ -45,4 +45,4 @@
 .rule-list li:last-child { border-bottom: 1px solid var(--line); }
 .rule-text { display: flex; flex: 1; flex-wrap: wrap; gap: 4px 8px; min-width: 0; }
 .rule-list .icon-btn { width: 36px; height: 36px; }
-.settings-page .icon-btn-danger:hover { background: var(--danger-soft-hover); }
+.settings-page .icon-btn-danger:hover { background: var(--danger-soft); border-color: var(--danger-soft-hover); }

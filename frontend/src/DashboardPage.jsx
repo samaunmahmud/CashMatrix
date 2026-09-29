@@ -25,6 +25,9 @@ const greeting = () => {
   return hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 };
 
+const todayLong = () =>
+  new Date().toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" });
+
 export default function DashboardPage() {
   const [linkToken, setLinkToken] = useState(null);
   const [accounts, setAccounts] = useState(null); // null while loading
@@ -174,37 +177,58 @@ export default function DashboardPage() {
 
   return (
     <div className="home">
+      <header className="page-head home-head">
+        <div>
+          <h1>{greeting()}{firstName ? `, ${firstName}` : ""}</h1>
+          <p className="muted">
+            {todayLong()}
+            {lastUpdated && <> · Balances updated {updatedLabel(lastUpdated)}</>}
+          </p>
+        </div>
+        <QuickActions
+          onAdd={() => setAddOpen(true)}
+          onLinkBank={() => open()}
+          linkDisabled={!ready}
+        />
+      </header>
+
       <section className="hero" aria-label="Summary">
-        <p className="hero-hello">{greeting()}{firstName ? `, ${firstName}` : ""}</p>
-        {totalBalance != null ? (
-          <>
-            <p className="hero-label">{cards.length > 0 ? "Your money after card balances" : "Total in your accounts"}</p>
-            <p className="hero-amount">{formatMoney(totalBalance, currency)}</p>
-            {cards.length > 0 && (
-              <p className="hero-breakdown">
-                {formatMoney(cashTotal, currency)} in accounts, less {formatMoney(owedOnCards, currency)} owed on{" "}
-                {cards.length === 1 ? "your card" : "your cards"}
-              </p>
-            )}
-            {transactions.length > 0 && (
-              <p className="hero-stats">
-                <span>Spent <strong>{formatMoney(totalSpent, currency)}</strong></span>
-                <span>Money in <strong className="hero-in">{formatMoney(moneyIn, currency)}</strong></span>
-                <span className="hero-period">last 90 days</span>
-              </p>
-            )}
-          </>
-        ) : connected ? (
-          <p className="hero-label">Here's where your money went.</p>
-        ) : (
-          <p className="hero-label">Link a bank to see your balances and spending.</p>
+        <div className="hero-main">
+          {totalBalance != null ? (
+            <>
+              <p className="hero-label">{cards.length > 0 ? "Your money after card balances" : "Total in your accounts"}</p>
+              <p className="hero-amount">{formatMoney(totalBalance, currency)}</p>
+              {cards.length > 0 && (
+                <p className="hero-breakdown">
+                  {formatMoney(cashTotal, currency)} in accounts, less {formatMoney(owedOnCards, currency)} owed on{" "}
+                  {cards.length === 1 ? "your card" : "your cards"}
+                </p>
+              )}
+            </>
+          ) : connected ? (
+            <p className="hero-label">Here's where your money went.</p>
+          ) : (
+            <p className="hero-label">Link a bank to see your balances and spending.</p>
+          )}
+        </div>
+        {transactions.length > 0 && (
+          <dl className="hero-stats">
+            <div>
+              <dt>Spent · 90 days</dt>
+              <dd>{formatMoney(totalSpent, currency)}</dd>
+            </div>
+            <div>
+              <dt>Money in · 90 days</dt>
+              <dd className="hero-in">{formatMoney(moneyIn, currency)}</dd>
+            </div>
+          </dl>
         )}
       </section>
 
-      <section className="accounts" aria-label="Your accounts">
-        <div className="accounts-head">
-          <h2>Your accounts</h2>
-          {lastUpdated && <span className="muted">Updated {updatedLabel(lastUpdated)}</span>}
+      <section className="accounts" aria-labelledby="accounts-title">
+        <div className="section-head">
+          <h2 id="accounts-title">Accounts</h2>
+          {accounts?.length > 0 && <span className="muted">{accounts.length} linked</span>}
         </div>
         {accounts === null ? (
           <div className="accounts-row" aria-busy="true">
@@ -232,12 +256,6 @@ export default function DashboardPage() {
         )}
         {statusMessage && <p className="status" role="status">{statusMessage}</p>}
       </section>
-
-      <QuickActions
-        onAdd={() => setAddOpen(true)}
-        onLinkBank={() => open()}
-        linkDisabled={!ready}
-      />
 
       <div className="home-grid">
         <div className="home-main">

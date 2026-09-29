@@ -40,3 +40,4 @@ export const GoalIcon = icon(<><circle cx="12" cy="12" r="9" /><circle cx="12" c
 export const ListIcon = icon(<><path d="M9 6h11M9 12h11M9 18h11" /><path d="M4 6h.01M4 12h.01M4 18h.01" /></>);
 export const DownloadIcon = icon(<><path d="M12 4v11" /><path d="M7 10l5 5 5-5" /><path d="M5 20h14" /></>);
 export const MinusIcon = icon(<path d="M5 12h14" />);
+export const ChartIcon = icon(<path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />);

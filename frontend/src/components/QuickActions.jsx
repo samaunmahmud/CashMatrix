@@ -1,26 +1,19 @@
 import { Link } from "react-router-dom";
-import { BankIcon, GoalIcon, ListIcon, PlusIcon } from "./Icons";
+import { BankIcon, ListIcon, PlusIcon } from "./Icons";
 
-/** Round shortcut buttons, like the row of actions under the balances in a banking app. */
+/** The page's main actions. Transactions only shows where the sidebar isn't there to reach it. */
 export default function QuickActions({ onAdd, onLinkBank, linkDisabled }) {
   return (
-    <nav className="quick-actions" aria-label="Quick actions">
-      <button type="button" className="quick-action" onClick={onAdd} aria-label="Add a payment, subscription or task">
-        <span className="quick-icon"><PlusIcon /></span>
-        <span aria-hidden="true">Add</span>
-      </button>
-      <Link to="/transactions" className="quick-action">
-        <span className="quick-icon"><ListIcon /></span>
-        <span>Transactions</span>
+    <div className="quick-actions" role="group" aria-label="Quick actions">
+      <Link to="/transactions" className="btn btn-outline btn-sm quick-narrow">
+        <ListIcon size={16} /> Transactions
       </Link>
-      <Link to="/goals" className="quick-action">
-        <span className="quick-icon"><GoalIcon /></span>
-        <span>Goals</span>
-      </Link>
-      <button type="button" className="quick-action" onClick={onLinkBank} disabled={linkDisabled}>
-        <span className="quick-icon"><BankIcon /></span>
-        <span>Link a bank</span>
+      <button type="button" className="btn btn-outline btn-sm" onClick={onAdd}>
+        <PlusIcon size={16} /> Add payment
       </button>
-    </nav>
+      <button type="button" className="btn btn-sm" onClick={onLinkBank} disabled={linkDisabled}>
+        <BankIcon size={16} /> Link a bank
+      </button>
+    </div>
   );
 }

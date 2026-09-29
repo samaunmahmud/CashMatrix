@@ -1,22 +1,19 @@
+/* App frame. Desktop: a fixed sidebar. Tablet: a bar across the top.
+   Phone: a slim top bar with the sections in a bottom bar, like a banking app. */
 .shell { min-height: 100vh; }
 
 .shell-header {
   position: sticky;
   top: 0;
   z-index: 20;
-  padding-top: env(safe-area-inset-top);
-  background: var(--brand);
-  color: #fff;
-}
-
-.shell-header-inner {
   display: flex;
   align-items: center;
-  gap: 24px;
-  max-width: 1040px;
-  margin: 0 auto;
-  padding: 10px 16px;
+  gap: 20px;
+  padding: calc(10px + env(safe-area-inset-top)) 20px 10px;
+  background: var(--sidebar-bg);
+  color: #fff;
 }
+.shell-header :focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.55); }
 
 .brand {
   display: flex;
@@ -26,64 +23,126 @@
   text-decoration: none;
   border-radius: 8px;
 }
-.brand-name { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.02em; }
+.brand-name { font-size: 1.125rem; font-weight: 700; letter-spacing: -0.02em; }
 
-.shell-nav { display: flex; gap: 4px; margin-left: 8px; }
+.shell-nav { display: flex; gap: 2px; }
+.nav-group { display: contents; }
+.nav-group-title { display: none; }
+.nav-link.nav-link-wide { display: none; }
+.nav-count { display: none; }
 
 .nav-link {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 8px 12px;
-  border-radius: 999px;
-  color: rgba(255, 255, 255, 0.86);
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.72);
   white-space: nowrap;
-  font-weight: 600;
+  font-size: 0.9375rem;
+  font-weight: 500;
   text-decoration: none;
+  transition: background 0.12s, color 0.12s;
 }
-.nav-link:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
-.nav-link.active { background: var(--header-pill-bg); color: var(--header-pill-text); }
+.nav-link:hover { background: rgba(255, 255, 255, 0.07); color: #fff; }
+.nav-link.active { background: rgba(255, 255, 255, 0.12); color: #fff; font-weight: 600; }
 
 .nav-icon { position: relative; display: inline-flex; }
 .nav-badge {
   position: absolute;
-  top: -7px;
+  top: -6px;
   right: -9px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 5px;
+  min-width: 13px;
+  height: 13px;
+  padding: 0 4px;
+  border: 2px solid var(--sidebar-bg);
   border-radius: 999px;
-  background: var(--accent-badge, #ffd23f);
-  color: #3a2c00;
-  font-size: 0.6875rem;
-  font-weight: 800;
-  line-height: 18px;
+  background: #e5484d;
+  color: #fff;
+  font-size: 0.625rem;
+  font-weight: 700;
+  line-height: 13px;
   text-align: center;
+  box-sizing: content-box;
 }
 
-.shell-user { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.shell-user { display: flex; align-items: center; gap: 10px; margin-left: auto; min-width: 0; }
 .shell-avatar {
   display: inline-flex;
+  flex: none;
   align-items: center;
   justify-content: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  background: var(--header-pill-bg);
-  color: var(--header-pill-text);
-  font-weight: 800;
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-size: 0.875rem;
+  font-weight: 600;
 }
-.shell-user-name { font-size: 0.9rem; font-weight: 500; opacity: 0.95; white-space: nowrap; }
-/* Six sections leave little room: the name gives way first on narrower screens. */
-@media (max-width: 1080px) { .shell-user-name { display: none; } }
-.shell-header :focus-visible { box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.6); }
+.shell-user-text { display: none; min-width: 0; flex-direction: column; line-height: 1.3; }
+.shell-user-name { font-size: 0.875rem; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.shell-user-email { font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-.shell-main { max-width: 1040px; margin: 0 auto; padding: 24px 16px 48px; }
+.shell-main { max-width: 1040px; margin: 0 auto; padding: 28px 20px 56px; }
 
-/* Phones: navigation moves to a bottom bar, like a banking app. */
+/* ---------- Desktop: sidebar ---------- */
+@media (min-width: 1024px) {
+  .shell-header {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 248px;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    padding: 20px 14px 16px;
+    border-right: 1px solid var(--sidebar-line);
+    overflow-y: auto;
+  }
+  .brand { padding: 4px 10px 24px; }
+
+  .shell-nav { flex-direction: column; gap: 20px; }
+  .nav-group { display: flex; flex-direction: column; gap: 2px; }
+  .nav-group-title {
+    display: block;
+    padding: 0 12px 6px;
+    color: rgba(255, 255, 255, 0.45);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .nav-link.nav-link-wide { display: flex; }
+  .nav-link { padding: 9px 12px; }
+  .nav-link.active { box-shadow: inset 3px 0 0 #5fd0a3; }
+  /* In a list the count reads better at the end of the row than on the icon. */
+  .nav-badge { display: none; }
+  .nav-count {
+    display: inline-block;
+    margin-left: auto;
+    padding: 0 7px;
+    border-radius: 999px;
+    background: #e5484d;
+    color: #fff;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    line-height: 18px;
+  }
+
+  .shell-user {
+    margin: auto 0 0;
+    padding: 14px 8px 0;
+    border-top: 1px solid var(--sidebar-line);
+  }
+  .shell-user-text { display: flex; }
+
+  .shell-main { max-width: none; margin: 0 0 0 248px; padding: 32px 40px 64px; }
+  .shell-main > * { max-width: 1160px; margin-left: auto; margin-right: auto; }
+}
+
+/* ---------- Phone: sections in a bottom bar ---------- */
 @media (max-width: 720px) {
-  .shell-user-name { display: none; }
-
+  .shell-header { padding: calc(8px + env(safe-area-inset-top)) 16px 8px; }
   .shell-nav {
     position: fixed;
     left: 0;
@@ -93,22 +152,22 @@
     justify-content: space-around;
     gap: 0;
     margin: 0;
-    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
     background: var(--nav-bar-bg);
     border-top: 1px solid var(--line);
-    box-shadow: 0 -4px 18px rgba(2, 71, 49, 0.08);
   }
   .nav-link {
     flex: 1;
     flex-direction: column;
-    gap: 2px;
-    padding: 6px 4px;
-    border-radius: 12px;
+    gap: 3px;
+    padding: 6px 2px;
     color: var(--muted);
-    font-size: 0.75rem;
+    font-size: 0.6875rem;
+    font-weight: 500;
   }
-  .nav-link:hover { background: var(--brand-soft); color: var(--brand-ink-strong); }
-  .nav-link.active { background: var(--brand-soft); color: var(--brand-ink-strong); }
+  .nav-link:hover { background: transparent; color: var(--text); }
+  .nav-link.active { background: transparent; color: var(--brand-ink); font-weight: 600; }
+  .nav-badge { border-color: var(--nav-bar-bg); }
 
-  .shell-main { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+  .shell-main { padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); }
 }

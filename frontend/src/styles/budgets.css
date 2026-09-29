@@ -3,8 +3,8 @@
 .budgets-page .banner { margin-bottom: 0; }
 .budgets-page .icon-btn { display: inline-flex; align-items: center; justify-content: center; flex: none; }
 .budgets-page .icon-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-.icon-btn-danger { background: var(--danger-soft); color: var(--danger); }
-.budgets-page .icon-btn-danger:hover, .goals-page .icon-btn-danger:hover { background: var(--danger-soft-hover); }
+.icon-btn-danger { color: var(--danger); }
+.budgets-page .icon-btn-danger:hover, .goals-page .icon-btn-danger:hover { background: var(--danger-soft); border-color: var(--danger-soft-hover); }
 
 .month-switcher { display: flex; align-items: center; justify-content: center; gap: 16px; }
 .month-switcher h2 { min-width: 180px; text-align: center; font-size: 1.15rem; }
@@ -14,7 +14,7 @@
 .budget-summary { display: flex; flex-direction: column; gap: 14px; }
 .budget-summary-figures { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; }
 .budget-summary-figures p { font-size: 0.875rem; }
-.budget-summary-amount { font-size: 2rem !important; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; }
+.budget-summary-amount { font-size: 2rem !important; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2; }
 .budget-summary-side { text-align: right; }
 .budget-summary-side strong { font-size: 1.1rem; }
 .budget-over-text { color: var(--danger); }

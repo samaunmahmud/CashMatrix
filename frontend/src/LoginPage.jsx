@@ -2,7 +2,7 @@ import { useState } from "react";
 import { Navigate, useNavigate } from "react-router-dom";
 import { authApi } from "./api";
 import { useAuth } from "./AuthContext";
-import { FingerprintIcon } from "./components/Icons";
+import { CheckIcon, FingerprintIcon } from "./components/Icons";
 import TigerLogo from "./components/TigerLogo";
 import { passkeysSupported, signInWithPasskey, wasCancelled } from "./passkeys";
 import "./styles/auth.css";
@@ -66,97 +66,112 @@ export default function LoginPage() {
 
   return (
     <div className="auth">
-      <div className="auth-brand">
-        <TigerLogo size={84} badge title="CashMatrix tiger logo" />
-        <h1>CashMatrix</h1>
-        <p>All your money, bills and dates in one place.</p>
-      </div>
+      <aside className="auth-aside">
+        <div className="auth-brand">
+          <TigerLogo size={40} title="CashMatrix tiger logo" />
+          <span>CashMatrix</span>
+        </div>
+        <div className="auth-pitch">
+          <h1>All your money, bills and dates in one place.</h1>
+          <ul className="auth-points">
+            <li><CheckIcon size={18} /> See every account and card balance together</li>
+            <li><CheckIcon size={18} /> Budgets, savings goals and a monthly summary</li>
+            <li><CheckIcon size={18} /> Reminders before bills and subscriptions are due</li>
+          </ul>
+        </div>
+        <p className="auth-foot">Read-only access through Plaid. CashMatrix never moves your money.</p>
+      </aside>
 
-      <div className="card auth-card">
-        <h2>{isSignup ? "Create your account" : "Log in"}</h2>
+      <main className="auth-main">
+        <div className="auth-card">
+          <h2>{isSignup ? "Create your account" : "Welcome back"}</h2>
+          <p className="auth-sub muted">
+            {isSignup ? "It takes less than a minute." : "Log in to see your balances and what's coming up."}
+          </p>
 
-        {sessionExpired && (
-          <p className="auth-notice" role="status">Your session has ended. Please log in again.</p>
-        )}
+          {sessionExpired && (
+            <p className="auth-notice" role="status">Your session has ended. Please log in again.</p>
+          )}
 
-        <form onSubmit={handleSubmit} className="auth-form">
-          {isSignup && (
+          <form onSubmit={handleSubmit} className="auth-form">
+            {isSignup && (
+              <label className="field">
+                <span>Full name</span>
+                <input
+                  className="input"
+                  type="text"
+                  autoComplete="name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  required
+                />
+              </label>
+            )}
             <label className="field">
-              <span>Full name</span>
+              <span>Email</span>
               <input
                 className="input"
-                type="text"
-                autoComplete="name"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
+                type="email"
+                autoComplete="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 required
               />
             </label>
-          )}
-          <label className="field">
-            <span>Email</span>
-            <input
-              className="input"
-              type="email"
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-            />
-          </label>
-          <label className="field">
-            <span>Password</span>
-            <div className="password-field">
-              <input
-                className="input"
-                type={showPassword ? "text" : "password"}
-                autoComplete={isSignup ? "new-password" : "current-password"}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-pressed={showPassword}
-              >
-                {showPassword ? "Hide" : "Show"}
-              </button>
-            </div>
-            {isSignup && <span className="field-hint">At least 8 characters.</span>}
-          </label>
+            <label className="field">
+              <span>Password</span>
+              <div className="password-field">
+                <input
+                  className="input"
+                  type={showPassword ? "text" : "password"}
+                  autoComplete={isSignup ? "new-password" : "current-password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="password-toggle"
+                  onClick={() => setShowPassword(!showPassword)}
+                  aria-pressed={showPassword}
+                >
+                  {showPassword ? "Hide" : "Show"}
+                </button>
+              </div>
+              {isSignup && <span className="field-hint">At least 8 characters.</span>}
+            </label>
 
-          {error && <p className="error-text" role="alert">{error}</p>}
+            {error && <p className="error-text" role="alert">{error}</p>}
 
-          <button type="submit" disabled={loading} className="btn">
-            {loading ? "Please wait…" : isSignup ? "Sign up" : "Log in"}
-          </button>
-        </form>
-
-        {!isSignup && passkeysSupported() && (
-          <>
-            <p className="auth-or"><span>or</span></p>
-            <button type="button" className="btn btn-outline auth-passkey" onClick={loginWithPasskey} disabled={loading}>
-              <FingerprintIcon size={20} /> Log in with fingerprint or face
+            <button type="submit" disabled={loading} className="btn">
+              {loading ? "Please wait…" : isSignup ? "Sign up" : "Log in"}
             </button>
-          </>
-        )}
+          </form>
 
-        <p className="auth-toggle">
-          {isSignup ? "Already have an account?" : "New to CashMatrix?"}{" "}
-          <button
-            type="button"
-            className="link-button"
-            onClick={() => {
-              setIsSignup(!isSignup);
-              setError("");
-            }}
-          >
-            {isSignup ? "Log in" : "Sign up"}
-          </button>
-        </p>
-      </div>
+          {!isSignup && passkeysSupported() && (
+            <>
+              <p className="auth-or"><span>or</span></p>
+              <button type="button" className="btn btn-outline auth-passkey" onClick={loginWithPasskey} disabled={loading}>
+                <FingerprintIcon size={20} /> Log in with fingerprint or face
+              </button>
+            </>
+          )}
+
+          <p className="auth-toggle">
+            {isSignup ? "Already have an account?" : "New to CashMatrix?"}{" "}
+            <button
+              type="button"
+              className="link-button"
+              onClick={() => {
+                setIsSignup(!isSignup);
+                setError("");
+              }}
+            >
+              {isSignup ? "Log in" : "Sign up"}
+            </button>
+          </p>
+        </div>
+      </main>
     </div>
   );
 }
