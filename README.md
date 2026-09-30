@@ -35,6 +35,9 @@
 - **Bank connections** through Plaid (UK banks by default), with up to two years of history on the first import and a background sync every four hours
 - **A clear picture of your money**: balance after card debt, spending by category or retailer, and month-by-month trends compared with last month
 - **Subscriptions found for you**: weekly, monthly and yearly charges are spotted in your transactions and added to your calendar in one tap
+- **Try it without signing up**: a "Try the demo" button opens a read-only example account with two years of made-up UK spending
+- **Where the month is heading**: a forecast of this month's spending from what's gone out, the bills still to come and your usual everyday pace
+- **Price change alerts** when a bill or subscription on your calendar is charged at a new price, which then goes on the calendar
 - **Budgets** per category, with warnings at 80% and when you go over
 - **Savings goals** with a progress ring, a "save this much a month" plan when you set a date, and a message when you get there
 - **Regular saving**: £50 every week or month on your calendar, with the date you'll reach the goal; recorded for you if you have a standing order, or a nudge on the day if not
@@ -67,7 +70,7 @@ Monthly limits per category that turn amber near the limit and red when you go o
 ### Savings goals
 Put money aside for something and watch it fill up. With a target date, each goal says how much to save a month; with a regular saving, it says when you'll get there.
 
-<img src="docs/screenshots/desktop-goals.png" alt="Savings goals with progress rings, one goal reached" width="900">
+<img src="docs/screenshots/desktop-goals.png" alt="Savings goals with progress rings and a standing order" width="900">
 
 ### Monthly summary
 A look back at each month, with links into the transactions behind every figure.
@@ -75,9 +78,9 @@ A look back at each month, with links into the transactions behind every figure.
 <img src="docs/screenshots/desktop-summary.png" alt="Monthly summary showing spending, change from the month before, categories, biggest purchases and budgets" width="900">
 
 ### Alerts
-Budget warnings, payment reminders and money in / out, with an unread count on the bell.
+Budget warnings, payment reminders, price changes and money in / out, with an unread count on the bell.
 
-<img src="docs/screenshots/desktop-alerts.png" alt="Alerts list with budget warnings" width="900">
+<img src="docs/screenshots/desktop-alerts.png" alt="Alerts list with budget warnings, payment reminders and a price rise" width="900">
 
 ### On your phone
 
@@ -91,9 +94,9 @@ Budget warnings, payment reminders and money in / out, with an unread count on t
 </table>
 
 ### Sign in
-<img src="docs/screenshots/desktop-login.png" alt="Login screen with password and passkey options" width="900">
+<img src="docs/screenshots/desktop-login.png" alt="Login screen with password, passkey and demo options" width="900">
 
-<sub>All screenshots use made-up demo data.</sub>
+<sub>All screenshots use the made-up demo account.</sub>
 
 ## How it works
 
@@ -104,7 +107,7 @@ flowchart LR
     API -- accounts, transactions --> P[Plaid]
     API -- email --> SMTP[SMTP server]
     API -- Web Push --> WP[Browser push services]
-    S[Scheduled jobs:<br>bank sync, reminders, budget alerts] --> API
+    S[Scheduled jobs:<br>bank sync, reminders, budget and price alerts] --> API
 ```
 
 - The **React** frontend talks to a stateless **Spring Boot** REST API using JWTs (or passkeys to sign in).
@@ -167,9 +170,11 @@ flowchart LR
 ## Tests
 
 ```bash
-cd backend && ./mvnw test      # 100+ tests, in-memory database
-cd frontend && npm run lint
+cd backend && ./mvnw test                  # 140+ tests, in-memory database
+cd frontend && npm run lint && npm test    # ESLint and Vitest unit tests
 ```
+
+GitHub Actions runs both on every push and pull request.
 
 ## Deploying
 

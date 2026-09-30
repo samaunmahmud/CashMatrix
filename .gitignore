@@ -3,3 +3,6 @@
 
 # Local run logs
 *.log
+
+# Copies iCloud Drive makes of files it syncs ("desktop-home 2.png")
+* 2.*
