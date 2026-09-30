@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { formatMoney } from "../format";
-import { monthLabel } from "../dates";
+import { monthLabel, parseISO } from "../dates";
 
 const HEIGHT = 170;
 const TOP = 22; // room for the value label above the tallest column
@@ -24,6 +24,20 @@ function paceText(insights, currency) {
     : `${formatMoney(diff, currency)} more than this time last month.`;
 }
 
+const dayAndMonth = (iso) => new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "short" }).format(parseISO(iso));
+
+// A forecast is a rough guide, so it is shown to the nearest pound without pence.
+const roughly = (amount, currency) => formatMoney(Math.round(amount), currency).replace(/\.00$/, "");
+
+/** The forecast against the last full month, e.g. "about £120 less than August". */
+function forecastComparison(insights, currency) {
+  const last = [...insights.months].reverse().find((m) => !m.partial);
+  if (!last) return null;
+  const diff = insights.forecast.total - last.spent;
+  if (Math.abs(diff) < 10) return `about the same as ${monthLabel(last.month).split(" ")[0]}`;
+  return `about ${roughly(Math.abs(diff), currency)} ${diff < 0 ? "less" : "more"} than ${monthLabel(last.month).split(" ")[0]}`;
+}
+
 /** The categories that moved most between last month and this one. */
 function biggestChanges(categories) {
   return [...categories]
@@ -41,7 +55,12 @@ function biggestChanges(categories) {
 export default function MonthlyTrend({ insights, currency }) {
   const [active, setActive] = useState(null);
   const months = insights.months;
-  const max = niceMax(Math.max(...months.map((m) => m.spent)));
+  // On the last day of the month there is nothing left to forecast.
+  const forecast = insights.forecast?.daysLeft > 0 ? insights.forecast : null;
+  const current = months[months.length - 1];
+  // Only drawn while there is more still to come than has been spent.
+  const ahead = forecast && forecast.total > current.spent ? forecast.total - current.spent : 0;
+  const max = niceMax(Math.max(...months.map((m) => m.spent), current.spent + ahead));
   const ticks = [0, max / 2, max];
   const scale = (v) => (v / max) * (HEIGHT - TOP);
 
@@ -76,14 +95,19 @@ export default function MonthlyTrend({ insights, currency }) {
               onClick={() => setActive(i)}
             >
               {i === months.length - 1 && (
-                <span className="trend-cap" style={{ bottom: scale(m.spent) + 4 }}>
-                  {formatMoney(m.spent, currency)}
+                <span className={`trend-cap${ahead ? " trend-cap-forecast" : ""}`} style={{ bottom: scale(m.spent + ahead) + 4 }}>
+                  {ahead ? `≈ ${roughly(forecast.total, currency)}` : formatMoney(m.spent, currency)}
                 </span>
               )}
-              <span
-                className={`trend-bar${m.partial ? " trend-bar-partial" : ""}`}
-                style={{ height: Math.max(scale(m.spent), m.spent > 0 ? 3 : 0), width: BAR }}
-              />
+              <span className="trend-stack">
+                {i === months.length - 1 && ahead > 0 && (
+                  <span className="trend-bar-forecast" style={{ height: scale(ahead), width: BAR }} />
+                )}
+                <span
+                  className={`trend-bar${m.partial ? " trend-bar-partial" : ""}`}
+                  style={{ height: Math.max(scale(m.spent), m.spent > 0 ? 3 : 0), width: BAR }}
+                />
+              </span>
             </div>
           ))}
         </div>
@@ -123,6 +147,35 @@ export default function MonthlyTrend({ insights, currency }) {
           </tbody>
         </table>
       </div>
+
+      {forecast && (
+        <div className="trend-forecast">
+          <p>
+            <strong>Heading for about {roughly(forecast.total, currency)}</strong> by {dayAndMonth(forecast.monthEnd)}
+            {forecastComparison(insights, currency) ? `, ${forecastComparison(insights, currency)}.` : "."}
+          </p>
+          <dl className="trend-forecast-parts">
+            <div>
+              <dt>Spent so far</dt>
+              <dd>{formatMoney(forecast.spentSoFar, currency)}</dd>
+            </div>
+            <div>
+              <dt>Bills to come{forecast.billCount > 0 ? ` (${forecast.billCount})` : ""}</dt>
+              <dd>{formatMoney(forecast.billsToCome, currency)}</dd>
+            </div>
+            <div>
+              <dt>Everyday, {forecast.daysLeft} {forecast.daysLeft === 1 ? "day" : "days"} left</dt>
+              <dd>
+                {formatMoney(forecast.everydayToCome, currency)}
+                <span className="muted"> · {roughly(forecast.everydayPerDay, currency)} a day</span>
+              </dd>
+            </div>
+          </dl>
+          <p className="trend-forecast-note muted">
+            Based on the bills on your calendar and your usual everyday spending.
+          </p>
+        </div>
+      )}
 
       {(pace || changes.length > 0) && (
         <div className="trend-notes">

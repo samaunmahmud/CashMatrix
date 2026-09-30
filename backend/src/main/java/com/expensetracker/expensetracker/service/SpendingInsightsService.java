@@ -34,6 +34,7 @@ public class SpendingInsightsService {
 
     private final BankAccountRepository bankAccountRepository;
     private final TransactionRepository transactionRepository;
+    private final SpendingForecastService forecastService;
     private final Clock clock;
 
     @Transactional(readOnly = true)
@@ -53,7 +54,7 @@ public class SpendingInsightsService {
         List<Transaction> transactions = accounts.isEmpty() ? List.of()
                 : transactionRepository.findByBankAccountInAndTransactionDateBetween(accounts, from, thisMonth.atEndOfMonth());
         if (transactions.isEmpty()) {
-            return new SpendingInsights(List.of(), BigDecimal.ZERO, null, List.of(), null);
+            return new SpendingInsights(List.of(), BigDecimal.ZERO, null, List.of(), null, null);
         }
 
         LocalDate historyStart = transactions.stream().map(Transaction::getTransactionDate).min(LocalDate::compareTo).orElseThrow();
@@ -84,7 +85,8 @@ public class SpendingInsightsService {
         }
 
         return new SpendingInsights(months, spentSoFar, sameTimeLastMonth,
-                categoryChanges(thisMonthTx, lastMonthTx), historyStart);
+                categoryChanges(thisMonthTx, lastMonthTx), historyStart,
+                forecastService.forecast(user, accounts, today));
     }
 
     private static List<CategoryChange> categoryChanges(List<Transaction> thisMonth, List<Transaction> lastMonth) {

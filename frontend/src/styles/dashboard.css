@@ -284,3 +284,30 @@
 .card-header-actions { display: flex; align-items: center; gap: 12px; }
 a.donut-name { color: inherit; text-decoration: none; }
 a.donut-name:hover { color: var(--brand-ink); text-decoration: underline; }
+
+/* Where this month is heading: a dashed extension of the current month's column */
+.trend-stack { display: flex; flex-direction: column; align-items: center; }
+.trend-bar-forecast {
+  display: block;
+  box-sizing: border-box;
+  border: 1.5px dashed var(--chart-2);
+  border-bottom: 0;
+  border-radius: 3px 3px 0 0;
+}
+.trend-cap-forecast { color: var(--muted); }
+.trend-forecast { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 0.875rem; }
+.trend-forecast p { margin: 0; }
+.trend-forecast-parts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 8px;
+  margin: 12px 0 8px;
+}
+.trend-forecast-parts div { padding: 8px 10px; border: 1px solid var(--line); border-radius: 6px; }
+.trend-forecast-parts dt { color: var(--muted); font-size: 0.75rem; }
+.trend-forecast-parts dd { margin: 2px 0 0; font-weight: 600; font-variant-numeric: tabular-nums; }
+.trend-forecast-note { font-size: 0.75rem; }
+/* Narrow columns can't centre the last label without it running off the card */
+@media (max-width: 720px) {
+  .trend-slot:last-child .trend-cap { left: auto; right: 0; transform: none; }
+}
