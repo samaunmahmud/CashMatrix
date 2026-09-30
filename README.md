@@ -15,6 +15,12 @@
 </p>
 
 <p align="center">
+  <a href="https://cashmatrix-teal.vercel.app"><strong>Try the live demo →</strong></a><br>
+  <sub>No sign-up needed: press "Try the demo" to look around an account with made-up data.<br>
+  The free server sleeps when idle, so the first visit can take up to a minute.</sub>
+</p>
+
+<p align="center">
   <img alt="Java 17" src="https://img.shields.io/badge/Java-17-ED8B00?logo=openjdk&logoColor=white">
   <img alt="Spring Boot 3.3" src="https://img.shields.io/badge/Spring_Boot-3.3-6DB33F?logo=springboot&logoColor=white">
   <img alt="React 19" src="https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black">
