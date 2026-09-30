@@ -12,8 +12,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Turns upcoming calendar items into notifications.
@@ -93,6 +95,8 @@ public class ReminderService {
         return created;
     }
 
+    private static final DateTimeFormatter DAY = DateTimeFormatter.ofPattern("EEE d MMM", Locale.UK);
+
     private Notification buildNotification(CalendarEvent event, LocalDate due, LocalDate today) {
         long days = ChronoUnit.DAYS.between(today, due);
         String when;
@@ -108,16 +112,18 @@ public class ReminderService {
             when = "was due " + (-days) + " days ago";
         }
 
-        String kind = event.getType().name().toLowerCase();
-        String amount = event.getAmount() != null ? " (" + event.getAmount().toPlainString() + ")" : "";
+        // "£142.00 payment due on Sat 3 Oct.", or for a task without an amount "Task due on Sat 3 Oct."
+        String kind = event.getType().name().toLowerCase(Locale.ROOT);
+        String what = event.getAmount() != null
+                ? Money.format(event.getAmount(), null) + " " + kind
+                : Character.toUpperCase(kind.charAt(0)) + kind.substring(1);
 
         Notification notification = new Notification();
         notification.setUser(event.getUser());
         notification.setEvent(event);
         notification.setDueDate(due);
         notification.setTitle(event.getTitle() + " " + when);
-        notification.setMessage("Your " + kind + " \"" + event.getTitle() + "\"" + amount
-                + " " + when + " (" + due + ").");
+        notification.setMessage(what + (days < 0 ? " was due on " : " due on ") + due.format(DAY) + ".");
         return notification;
     }
 }

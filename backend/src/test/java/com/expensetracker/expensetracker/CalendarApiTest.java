@@ -175,6 +175,8 @@ class CalendarApiTest {
         assertThat(first).hasSize(1);
         assertThat(second).as("no duplicate on the second look").hasSize(1);
         assertThat(first.get(0).get("title").asText()).isEqualTo("Council tax due in 2 days");
+        // The pound sign is left out: MockMvc reads the body as ISO-8859-1 unless told otherwise.
+        assertThat(first.get(0).get("message").asText()).endsWith("150.00 payment due on Tue 22 Sept.");
         assertThat(first.get(0).get("message").asText()).contains("150.00");
         assertThat(first.get(0).get("read").asBoolean()).isFalse();
     }

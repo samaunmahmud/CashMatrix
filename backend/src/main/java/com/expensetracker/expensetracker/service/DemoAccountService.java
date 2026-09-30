@@ -261,7 +261,7 @@ public class DemoAccountService {
 
     private void createGoals(User user, LocalDate today) {
         // Saved towards every month by standing order, which the app records by itself.
-        SavingsGoal holiday = goal(user, "Holiday in Lisbon", "✈️", "1500", today.plusMonths(5).withDayOfMonth(1));
+        SavingsGoal holiday = goal(user, "Holiday in Lisbon", "✈️", "1500", today.plusMonths(6).withDayOfMonth(1));
         LocalDate planStart = today.minusMonths(7).withDayOfMonth(28);
         LocalDate planNext = Recurrence.MONTHLY.firstOnOrAfter(planStart, today);
         holiday.setPlanAmount(new BigDecimal("120.00"));
