@@ -5,6 +5,10 @@
 <h1 align="center">CashMatrix</h1>
 
 <p align="center">
+  <a href="https://github.com/samaunmahmud/CashMatrix/actions/workflows/ci.yml"><img src="https://github.com/samaunmahmud/CashMatrix/actions/workflows/ci.yml/badge.svg" alt="CI status"></a>
+</p>
+
+<p align="center">
   <strong>All your money, bills and dates in one place.</strong><br>
   A full-stack personal finance tracker: link your bank, see where your money goes, set budgets,<br>
   and get reminded before every payment is due.
