@@ -84,3 +84,7 @@
   .auth-points, .auth-foot { display: none; }
   .auth-main { align-items: flex-start; padding: 28px 20px 40px; }
 }
+
+.auth-demo { margin-top: 16px; }
+.auth-demo-button { width: 100%; min-height: 44px; }
+.auth-demo-hint { margin-top: 8px; text-align: center; font-size: 0.8125rem; }

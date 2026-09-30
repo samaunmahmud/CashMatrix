@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { authApi } from "./api";
 import { useAuth } from "./AuthContext";
 import { CheckIcon, FingerprintIcon } from "./components/Icons";
@@ -9,12 +9,15 @@ import { passkeysSupported, signInWithPasskey, wasCancelled } from "./passkeys";
 import "./styles/auth.css";
 
 export default function LoginPage() {
-  const [isSignup, setIsSignup] = useState(false);
+  const [searchParams] = useSearchParams();
+  // The demo's "Create your account" link lands here with the sign-up form already showing.
+  const [isSignup, setIsSignup] = useState(searchParams.has("signup"));
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [openingDemo, setOpeningDemo] = useState(false);
 
   const { user, login, sessionExpired } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
@@ -37,6 +40,22 @@ export default function LoginPage() {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const openDemo = async () => {
+    setError("");
+    setLoading(true);
+    setOpeningDemo(true);
+    try {
+      const response = await authApi.demo();
+      login(response.data);
+      navigate("/dashboard");
+    } catch (err) {
+      setError(err.response?.data?.error || "Couldn't open the demo just now. Please try again.");
+    } finally {
+      setLoading(false);
+      setOpeningDemo(false);
     }
   };
 
@@ -160,6 +179,17 @@ export default function LoginPage() {
               </button>
             </>
           )}
+
+          <div className="auth-demo">
+            <button type="button" className="btn btn-outline auth-demo-button" onClick={openDemo} disabled={loading}>
+              {openingDemo ? "Opening the demo…" : "Try the demo"}
+            </button>
+            <p className="auth-demo-hint muted" role="status">
+              {openingDemo
+                ? "This can take up to a minute if the server has been asleep."
+                : "No sign-up needed. Look around an example account with made-up data."}
+            </p>
+          </div>
 
           <p className="auth-toggle">
             {isSignup ? "Already have an account?" : "New to CashMatrix?"}{" "}

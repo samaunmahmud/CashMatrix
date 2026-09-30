@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.config;
 
+import com.expensetracker.expensetracker.security.DemoReadOnlyFilter;
 import com.expensetracker.expensetracker.security.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,7 @@ public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
     private final JwtAuthFilter jwtAuthFilter;
+    private final DemoProperties demoProperties;
 
     /** Where the frontend is served; browsers there may call the API. */
     @Value("${app.public-url:http://localhost:5173}")
@@ -60,7 +62,8 @@ public class SecurityConfig {
             }))
             .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+            .addFilterAfter(new DemoReadOnlyFilter(demoProperties), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

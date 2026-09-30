@@ -171,3 +171,21 @@
 
   .shell-main { padding: 20px 16px calc(96px + env(safe-area-inset-bottom)); }
 }
+
+/* Shown on every page of the shared demo account */
+.demo-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 16px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+  padding: 12px 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--brand-soft);
+  color: var(--brand-ink-strong);
+  font-size: 0.875rem;
+}
+.demo-banner p { margin: 0; flex: 1 1 260px; }
+.demo-banner-action { min-height: 36px; padding: 0 14px; font-size: 0.875rem; }

@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { usePlaidLink } from "react-plaid-link";
 import { Link } from "react-router-dom";
-import { accountApi, budgetApi, calendarApi, goalApi, insightsApi, plaidApi, subscriptionApi, transactionApi } from "./api";
+import { accountApi, budgetApi, calendarApi, goalApi, insightsApi, notifyDemoBlocked, plaidApi, subscriptionApi, transactionApi } from "./api";
 import { categoryOf, knownCategories } from "./categories";
 import { useAuth } from "./AuthContext";
 import { useNotifications } from "./NotificationsContext";
@@ -45,6 +45,7 @@ export default function DashboardPage() {
   const [spendingBy, setSpendingBy] = useState("category");
 
   const { user } = useAuth();
+  const isDemo = Boolean(user?.demo);
   const { refreshUnread } = useNotifications();
   const reload = useCallback(() => setReloadKey((key) => key + 1), []);
 
@@ -83,6 +84,7 @@ export default function DashboardPage() {
   }, [reloadKey]);
 
   useEffect(() => {
+    if (isDemo) return undefined; // the demo account can't connect a bank
     let active = true;
     plaidApi.createLinkToken()
       .then((res) => active && setLinkToken(res.data.link_token))
@@ -90,7 +92,7 @@ export default function DashboardPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [isDemo]);
 
   const syncNow = async () => {
     setSyncing(true);
@@ -187,8 +189,8 @@ export default function DashboardPage() {
         </div>
         <QuickActions
           onAdd={() => setAddOpen(true)}
-          onLinkBank={() => open()}
-          linkDisabled={!ready}
+          onLinkBank={() => (isDemo ? notifyDemoBlocked() : open())}
+          linkDisabled={!isDemo && !ready}
         />
       </header>
 

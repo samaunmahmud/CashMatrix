@@ -36,6 +36,7 @@ public class TransactionService {
     private final PlaidService plaidService;
     private final TransactionAlertService alertService;
     private final CategoryRuleService categoryRuleService;
+    private final DemoAccountService demoAccountService;
     private final Clock clock;
 
     /** A sync the user asked for: they are in the app, so any alerts it raises are shown there. */
@@ -50,6 +51,9 @@ public class TransactionService {
      */
     @SuppressWarnings("unchecked")
     public int syncTransactions(User user, boolean userIsPresent) {
+        // The demo account's banks aren't real, so there is nothing to ask Plaid for.
+        if (demoAccountService.isDemo(user)) return demoAccountService.topUp();
+
         List<BankAccount> accounts = bankAccountRepository.findByUser(user);
         if (accounts.isEmpty()) return 0;
 

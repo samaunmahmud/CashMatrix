@@ -1,5 +1,6 @@
 package com.expensetracker.expensetracker.service;
 
+import com.expensetracker.expensetracker.config.DemoProperties;
 import com.expensetracker.expensetracker.dto.AuthResponse;
 import com.expensetracker.expensetracker.dto.LoginRequest;
 import com.expensetracker.expensetracker.dto.SignupRequest;
@@ -22,9 +23,11 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
     private final AuthenticationManager authenticationManager;
+    private final DemoProperties demo;
 
     public AuthResponse signup(SignupRequest request) {
-        if (userRepository.existsByEmail(request.getEmail())) {
+        // The demo account's address is reserved even before the demo has first been opened.
+        if (userRepository.existsByEmail(request.getEmail()) || demo.isDemoEmail(request.getEmail())) {
             throw new IllegalArgumentException("An account with this email already exists");
         }
 

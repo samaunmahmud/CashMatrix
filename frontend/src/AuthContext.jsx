@@ -3,13 +3,13 @@ import { SESSION_EXPIRED_EVENT } from "./api";
 
 const AuthContext = createContext(null);
 
-const STORED_KEYS = ["token", "userEmail", "userFullName"];
+const STORED_KEYS = ["token", "userEmail", "userFullName", "userDemo"];
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
     const email = localStorage.getItem("userEmail");
     const fullName = localStorage.getItem("userFullName");
-    return email ? { email, fullName } : null;
+    return email ? { email, fullName, demo: localStorage.getItem("userDemo") === "true" } : null;
   });
   // True after the server rejected the login, so the login screen can explain why they're back there.
   const [sessionExpired, setSessionExpired] = useState(false);
@@ -28,8 +28,12 @@ export function AuthProvider({ children }) {
     localStorage.setItem("token", authResponse.token);
     localStorage.setItem("userEmail", authResponse.email);
     localStorage.setItem("userFullName", authResponse.fullName);
+    // The shared demo account: the app says so, and doesn't offer what it can't do there.
+    const demo = Boolean(authResponse.demo);
+    if (demo) localStorage.setItem("userDemo", "true");
+    else localStorage.removeItem("userDemo");
     setSessionExpired(false);
-    setUser({ email: authResponse.email, fullName: authResponse.fullName });
+    setUser({ email: authResponse.email, fullName: authResponse.fullName, demo });
   };
 
   const logout = () => {

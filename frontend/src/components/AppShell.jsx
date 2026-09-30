@@ -1,7 +1,10 @@
+import { useCallback, useEffect, useState } from "react";
 import { NavLink, Outlet } from "react-router-dom";
+import { DEMO_BLOCKED_EVENT } from "../api";
 import { useAuth } from "../AuthContext";
 import { NotificationsProvider, useNotifications } from "../NotificationsContext";
 import TigerLogo from "./TigerLogo";
+import Toast from "./Toast";
 import { BellIcon, BudgetIcon, CalendarIcon, ChartIcon, GoalIcon, HomeIcon, ListIcon, SettingsIcon } from "./Icons";
 import "../styles/shell.css";
 
@@ -34,8 +37,22 @@ const NAV = [
 ];
 
 function Shell() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const { unread } = useNotifications();
+  const [demoMessage, setDemoMessage] = useState("");
+  const clearDemoMessage = useCallback(() => setDemoMessage(""), []);
+
+  useEffect(() => {
+    const onBlocked = () => setDemoMessage("This is the demo, so changes aren't saved.");
+    window.addEventListener(DEMO_BLOCKED_EVENT, onBlocked);
+    return () => window.removeEventListener(DEMO_BLOCKED_EVENT, onBlocked);
+  }, []);
+
+  // A full page load, so the redirect that follows logging out can't drop the "?signup".
+  const leaveDemo = () => {
+    logout();
+    window.location.assign("/?signup");
+  };
 
   return (
     <div className="shell">
@@ -81,8 +98,19 @@ function Shell() {
       </header>
 
       <main id="main" className="shell-main">
+        {user?.demo && (
+          <div className="demo-banner" role="note">
+            <p>
+              <strong>You're looking at the demo.</strong> Everything here is made up, and changes aren't saved.
+            </p>
+            <button type="button" className="btn demo-banner-action" onClick={leaveDemo}>
+              Create your account
+            </button>
+          </div>
+        )}
         <Outlet />
       </main>
+      <Toast message={demoMessage} onDone={clearDemoMessage} />
     </div>
   );
 }

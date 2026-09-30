@@ -5,6 +5,10 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api"
 // Fired when the server says the login is no longer valid, so the app can send the user back to log in.
 export const SESSION_EXPIRED_EVENT = "cashmatrix:session-expired";
 
+// Fired when the demo account tries to change something, so the app can explain that it is read-only.
+export const DEMO_BLOCKED_EVENT = "cashmatrix:demo-blocked";
+export const notifyDemoBlocked = () => window.dispatchEvent(new Event(DEMO_BLOCKED_EVENT));
+
 const api = axios.create({
   baseURL: API_BASE_URL,
 });
@@ -27,6 +31,9 @@ api.interceptors.response.use(
     if (error.response?.status === 401 && !isAuthCall(error.config)) {
       window.dispatchEvent(new Event(SESSION_EXPIRED_EVENT));
     }
+    if (error.response?.status === 403 && error.response.data?.demo) {
+      notifyDemoBlocked();
+    }
     return Promise.reject(error);
   }
 );
@@ -34,6 +41,7 @@ api.interceptors.response.use(
 export const authApi = {
   signup: (data) => api.post("/auth/signup", data),
   login: (data) => api.post("/auth/login", data),
+  demo: () => api.post("/auth/demo"),
   passkeyStart: () => api.post("/auth/passkey/start"),
   passkeyFinish: (requestId, credential) => api.post("/auth/passkey/finish", { requestId, credential }),
 };
