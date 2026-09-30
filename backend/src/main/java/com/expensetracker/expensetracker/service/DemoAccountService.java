@@ -49,6 +49,7 @@ public class DemoAccountService {
     private final GoalContributionRepository contributionRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final PriceChangeService priceChangeService;
     private final TransactionTemplate transactions;
     private final Clock clock;
 
@@ -89,13 +90,18 @@ public class DemoAccountService {
             List<BankAccount> accounts = bankAccountRepository.findByUser(account);
             if (accounts.isEmpty()) {
                 accounts = createAccounts(account);
-                lastAdded = fill(accounts, today.minusMonths(HISTORY_MONTHS).withDayOfMonth(1), today);
+                List<Transaction> added = fill(accounts, today.minusMonths(HISTORY_MONTHS).withDayOfMonth(1), today);
                 createBudgets(account);
                 createCalendar(account, today);
                 createGoals(account, today);
+                // The calendar starts at last year's prices, so the latest charges show what changed.
+                priceChangeService.check(account, added, true);
+                lastAdded = added.size();
             } else {
-                lastAdded = fill(accounts, today.minusDays(TOP_UP_DAYS), today);
+                List<Transaction> added = fill(accounts, today.minusDays(TOP_UP_DAYS), today);
                 moveCalendarOn(account, today);
+                priceChangeService.check(account, added, true);
+                lastAdded = added.size();
             }
             bankAccountRepository.markSynced(account, clock.instant());
             return account;
@@ -146,8 +152,8 @@ public class DemoAccountService {
         return "demo-" + which.name().toLowerCase();
     }
 
-    /** Adds the transactions of every day in the range that has none yet. @return how many were added */
-    private int fill(List<BankAccount> accounts, LocalDate from, LocalDate to) {
+    /** Adds the transactions of every day in the range that has none yet. @return the ones added */
+    private List<Transaction> fill(List<BankAccount> accounts, LocalDate from, LocalDate to) {
         Map<DemoData.Account, BankAccount> byKind = new EnumMap<>(DemoData.Account.class);
         for (DemoData.Account kind : DemoData.Account.values()) {
             accounts.stream()
@@ -176,8 +182,7 @@ public class DemoAccountService {
                 added.add(tx);
             }
         }
-        transactionRepository.saveAll(added);
-        return added.size();
+        return transactionRepository.saveAll(added);
     }
 
     private void createBudgets(User user) {

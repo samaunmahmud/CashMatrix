@@ -80,6 +80,15 @@ class DemoAccountTest {
     }
 
     @Test
+    void theDemoShowsARecentPriceRiseAndTheCalendarHasTheNewPrice() throws Exception {
+        mvc.perform(get("/api/notifications").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[*].title", hasItem("Spotify has gone up to £12.99")));
+        mvc.perform(get("/api/calendar/events").header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$[?(@.title == 'Spotify')].amount", hasItem(12.99)));
+    }
+
+    @Test
     void subscriptionsNotYetOnTheCalendarAreSuggestedIncludingAYearlyOne() throws Exception {
         mvc.perform(get("/api/subscriptions/suggestions").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())

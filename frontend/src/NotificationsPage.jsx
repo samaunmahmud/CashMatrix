@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { notificationApi } from "./api";
+import { useAuth } from "./AuthContext";
 import { useNotifications } from "./NotificationsContext";
 import { shortDate } from "./dates";
 import "./styles/notifications.css";
@@ -10,6 +11,8 @@ export default function NotificationsPage() {
   const [error, setError] = useState(false);
   const { unread, refreshUnread } = useNotifications();
   const navigate = useNavigate();
+  // The demo is shared, so its alerts stay unread for the next visitor.
+  const isDemo = Boolean(useAuth()?.user?.demo);
 
   const [reloadKey, setReloadKey] = useState(0);
   const reload = () => setReloadKey((key) => key + 1);
@@ -34,7 +37,7 @@ export default function NotificationsPage() {
   }, [reloadKey, refreshUnread]);
 
   const open = async (notification) => {
-    if (!notification.read) {
+    if (!notification.read && !isDemo) {
       try {
         await notificationApi.markRead(notification.id);
         refreshUnread();
@@ -60,9 +63,9 @@ export default function NotificationsPage() {
       <div className="page-head">
         <div>
           <h1>Alerts</h1>
-          <p className="muted">Reminders for payments, subscriptions and tasks, money in and out of your accounts, and budget warnings.</p>
+          <p className="muted">Reminders for payments, subscriptions and tasks, money in and out of your accounts, price changes and budget warnings.</p>
         </div>
-        {unread > 0 && (
+        {unread > 0 && !isDemo && (
           <button type="button" className="btn btn-outline" onClick={markAllRead}>
             Mark all as read
           </button>

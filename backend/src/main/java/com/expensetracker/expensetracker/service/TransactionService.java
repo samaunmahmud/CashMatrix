@@ -37,6 +37,7 @@ public class TransactionService {
     private final TransactionAlertService alertService;
     private final CategoryRuleService categoryRuleService;
     private final DemoAccountService demoAccountService;
+    private final PriceChangeService priceChangeService;
     private final Clock clock;
 
     /** A sync the user asked for: they are in the app, so any alerts it raises are shown there. */
@@ -106,6 +107,11 @@ public class TransactionService {
             alertService.alert(user, alertable, userIsPresent);
         } catch (RuntimeException ex) {
             log.warn("Could not raise transaction alerts for user {}: {}", user.getId(), ex.getMessage());
+        }
+        try {
+            priceChangeService.check(user, alertable, userIsPresent);
+        } catch (RuntimeException ex) {
+            log.warn("Could not check for price changes for user {}: {}", user.getId(), ex.getMessage());
         }
         return savedCount;
     }

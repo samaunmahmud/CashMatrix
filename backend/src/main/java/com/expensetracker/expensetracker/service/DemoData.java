@@ -28,6 +28,9 @@ final class DemoData {
     private static final String[] RESTAURANTS = {"Dishoom", "Nando's", "Wagamama", "Franco Manca", "Honest Burgers"};
     private static final String[] SHOPS = {"Uniqlo", "Boots", "John Lewis", "Waterstones", "IKEA", "Decathlon"};
 
+    // So the demo has a price change to show.
+    static final LocalDate SPOTIFY_PRICE_RISE = LocalDate.of(2026, 9, 1);
+
     private DemoData() {
     }
 
@@ -64,7 +67,7 @@ final class DemoData {
             case 8 -> entries.add(new Entry(Account.CARD, "NETFLIX.COM", money("10.99"), "Entertainment"));
             case 10 -> entries.add(new Entry(Account.CARD, "APPLE.COM/BILL", money("2.99"), "Entertainment"));
             case 12 -> entries.add(new Entry(Account.CURRENT, "BT Broadband", money("32.99"), "Bills"));
-            case 15 -> entries.add(new Entry(Account.CARD, "Spotify AB", money("11.99"), "Entertainment"));
+            case 15 -> entries.add(new Entry(Account.CARD, "Spotify AB", money(date.isBefore(SPOTIFY_PRICE_RISE) ? "11.99" : "12.99"), "Entertainment"));
             case 18 -> entries.add(new Entry(Account.CURRENT, "giffgaff", money("12.00"), "Bills"));
             case 20 -> entries.add(new Entry(Account.CURRENT, "Thames Water", money("38.50"), "Bills"));
             case 22 -> entries.add(new Entry(Account.CARD, "Disney Plus", money("4.99"), "Entertainment"));

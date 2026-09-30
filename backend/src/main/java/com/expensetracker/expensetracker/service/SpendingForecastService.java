@@ -52,7 +52,7 @@ public class SpendingForecastService {
                 .filter(e -> e.getAmount() != null && e.getAmount().signum() > 0 && e.isActive())
                 .toList();
         Set<String> billWords = bills.stream()
-                .flatMap(e -> words(e.getTitle()).stream())
+                .flatMap(e -> BillMatcher.words(e.getTitle()).stream())
                 .collect(Collectors.toSet());
         Set<BigDecimal> billAmounts = bills.stream()
                 .map(e -> e.getAmount().stripTrailingZeros())
@@ -99,18 +99,7 @@ public class SpendingForecastService {
      */
     private static boolean isBill(Transaction tx, Set<String> billWords, Set<BigDecimal> billAmounts) {
         if (billAmounts.contains(tx.getAmount().stripTrailingZeros())) return true;
-        return words(tx.getName()).stream().anyMatch(billWords::contains);
-    }
-
-    /** The meaningful words of a name, as MerchantNames.key picks them. */
-    private static List<String> words(String name) {
-        List<String> words = new ArrayList<>();
-        if (name == null) return words;
-        for (String part : name.split("\\s+")) {
-            String key = MerchantNames.key(part);
-            if (key != null) words.add(key);
-        }
-        return words;
+        return BillMatcher.sharesWord(billWords, tx.getName());
     }
 
     /** Everyday spending per day over the complete months the history covers, or this month's own. */
